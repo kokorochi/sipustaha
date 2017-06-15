@@ -13,4 +13,4 @@
 
 Route::get('/', 'HomeController@index');
 
-Route::get('callback', 'CallbackController@callback');
+Route::get('callback.php', 'CallbackController@callback');
