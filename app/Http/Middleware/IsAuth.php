@@ -29,8 +29,12 @@ class IsAuth {
             }
         }
         );
-        dd($login);
-
-        return $next($request);
+        if (! $login->logged_in)
+        {
+            return 'test';
+        } else
+        {
+            return $next($request);
+        }
     }
 }
