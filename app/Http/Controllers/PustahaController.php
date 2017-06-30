@@ -1,20 +1,19 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Http\Controllers;
 
-use Closure;
-use Illuminate\Support\Facades\Redirect;
+use App\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use parinpan\fanjwt\libs\JWTAuth;
 
-class IsAuth {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @param  \Closure $next
-     * @return mixed
-     */
-    public function handle($request, Closure $next)
+class PustahaController extends MainController {
+    public function __construct()
+    {
+        $this->middleware('is_auth')->except('index');
+    }
+
+    public function index()
     {
         if (env('APP_ENV') == 'local')
         {
@@ -22,7 +21,7 @@ class IsAuth {
             $user->username = env('LOGIN_USERNAME');
             Auth::login($user);
 
-            return $next($request);
+            return view('pustaha.pustaha-list');
         }
         $login = JWTAuth::communicate('https://akun.usu.ac.id/auth/listen', @$_COOKIE['ssotok'], function ($credential)
         {
@@ -40,14 +39,20 @@ class IsAuth {
         );
         if (! $login->logged_in)
         {
-            return redirect('/');
+            $login_link = JWTAuth::makeLink([
+                'baseUrl'  => 'https://akun.usu.ac.id/auth/login',
+                'callback' => url('/') . '/callback.php',
+                'redir'    => url('/'),
+            ]);
+
+            return view('landing-page', compact('login_link'));
         } else
         {
             $user = new User();
             $user->username = $login->payload->identity;
             Auth::login($user);
 
-            return $next($request);
+            return view('pustaha.pustaha-list');
         }
     }
 }

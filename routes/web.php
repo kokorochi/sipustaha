@@ -11,7 +11,7 @@
 |
 */
 
-Route::get('/', 'HomeController@index');
-Route::get('login', 'HomeController@login')->name('login');
+Route::get('/', 'PustahaController@index');
+Route::get('pustahas', 'PustahaController@index');
 
 Route::get('callback.php', 'CallbackController@callback');
