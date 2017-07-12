@@ -40,7 +40,7 @@ class IsAuth {
             }
         }
         );
-        if (! $login->logged_in)
+        if (! $login)
         {
             return redirect('/');
         } else

@@ -71,7 +71,7 @@ class PustahaController extends MainController {
             }
             );
         }
-        if (! $login->logged_in)
+        if (! $login)
         {
             $login_link = JWTAuth::makeLink([
                 'baseUrl'  => 'https://akun.usu.ac.id/auth/login',
