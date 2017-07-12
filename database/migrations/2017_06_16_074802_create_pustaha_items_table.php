@@ -16,9 +16,9 @@ class CreatePustahaItemsTable extends Migration
         Schema::create('pustaha_items', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('pustaha_id', false, true);
-            $table->string('username')->nullable();
-            $table->string('name')->nullable();
-            $table->string('affiliation')->nullable();
+            $table->string('item_username')->nullable();
+            $table->string('item_name')->nullable();
+            $table->string('item_affiliation')->nullable();
         });
     }
 

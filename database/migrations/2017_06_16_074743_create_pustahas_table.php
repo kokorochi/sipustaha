@@ -27,10 +27,8 @@ class CreatePustahasTable extends Migration
             $table->string('volume')->nullable();
             $table->string('issue')->nullable();
             $table->string('url_address')->nullable();
-            $table->smallInteger('halaman', false, true)->nullable();
-            $table->tinyInteger('year', false, true)->nullable();
-            $table->tinyInteger('month', false, true)->nullable();
-            $table->tinyInteger('day', false, true)->nullable();
+            $table->smallInteger('pages', false, true)->nullable();
+            $table->date('pustaha_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

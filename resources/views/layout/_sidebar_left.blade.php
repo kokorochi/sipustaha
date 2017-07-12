@@ -9,7 +9,7 @@
             </a>
             <div class="media-body">
                 <h4 class="media-heading">Hello, <span id='username'>{{$user_info['full_name']}}</span></h4>
-                <!-- <small>Web Designer</small> -->
+                <small>NIP : {{$user_info['username']}}</small>
             </div>
         </div>
     </div><!-- /.sidebar-content -->
@@ -21,8 +21,8 @@
         <!-- Start navigation - dashboard -->
         <li class="submenu {!! Request::is('/', '/') ? 'active' : null !!}">
             <a href="{{url('/')}}">
-                <span class="icon"><i class="fa fa-handshake-o"></i></span>
-                <span class="text">Kerjasama</span>
+                <span class="icon"><i class="fa fa-cloud-upload"></i></span>
+                <span class="text">Pustaha</span>
                 {!! Request::is('/', '/') ? '<span class="selected"></span>' : null !!}
             </a>
         </li>
@@ -32,18 +32,18 @@
                 {{--<span class="text">Kerjasama Segera Berakhir</span>--}}
             {{--</a>--}}
         {{--</li>--}}
-        <li class="submenu {!! Request::is('partners', 'partners/*', 'units') ? 'active' : null !!}">
-            <a href="javascript:void(0);">
-                <span class="icon"><i class="fa fa-dot-circle-o"></i></span>
-                <span class="text">Data Referensi </span>
-                <span class="arrow"></span>
-                {!! Request::is('partners', 'partners/*', 'units') ? '<span class="selected"></span>' : null !!}
-            </a>
-            <ul>
-                <li><a href="{{url('partners')}}">Instansi Partner</a></li>
-                <li><a href="{{url('units')}}">Unit Kerja</a></li>
-            </ul>
-        </li>
+        {{--<li class="submenu {!! Request::is('partners', 'partners/*', 'units') ? 'active' : null !!}">--}}
+            {{--<a href="javascript:void(0);">--}}
+                {{--<span class="icon"><i class="fa fa-dot-circle-o"></i></span>--}}
+                {{--<span class="text">Data Referensi </span>--}}
+                {{--<span class="arrow"></span>--}}
+                {{--{!! Request::is('partners', 'partners/*', 'units') ? '<span class="selected"></span>' : null !!}--}}
+            {{--</a>--}}
+            {{--<ul>--}}
+                {{--<li><a href="{{url('partners')}}">Instansi Partner</a></li>--}}
+                {{--<li><a href="{{url('units')}}">Unit Kerja</a></li>--}}
+            {{--</ul>--}}
+        {{--</li>--}}
 
         @can('admin-menu')
             <li class="submenu {!! Request::is('users', 'users/*') ? 'active' : null !!}">

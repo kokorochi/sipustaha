@@ -24,7 +24,7 @@
             <!-- Start brand -->
             <a id="tour-1" class="navbar-brand" href="{{url('/')}}">
                 {{--<img class="logo" src="{{url('img/logo_usu_.png')}}" alt="brand logo">--}}
-                <strong>SIM KERMA</strong>
+                <strong>SIPUSTAHA</strong>
             </a><!-- /.navbar-brand -->
             <!--/ End brand -->
 
@@ -80,7 +80,7 @@
                 <li id="tour-6" class="dropdown navbar-profile">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                 <span class="meta">
-                                    <span class="avatar"><img src="{{$user_info['photo']}}" class="img-circle" alt="admin"></span>
+                                    <span class="avatar"><img src="{{$user_info['photo']}}" class="img-circle" alt="admin" style="width: 32px; height: 32px;"></span>
                                     <span class="text hidden-xs hidden-sm text-muted" id="u_profile"></span>
                                     <span class="caret"></span>
                                 </span>

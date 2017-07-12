@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Simsdm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use View;
@@ -68,7 +69,7 @@ class MainController extends Controller
             'css/components.css',
             'css/plugins.css',
             'css/themes/laravel.theme.css'   => ['id' => ''],
-            'css/themes/blue-gray.theme.css' => ['id' => 'theme'],
+            'css/themes/cyan.theme.css' => ['id' => 'theme'],
             'css/custom.css',
         ];
 

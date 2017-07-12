@@ -58,17 +58,6 @@
                                     </thead>
                                     <tbody>
                                     </tbody>
-                                    {{--<tfoot>--}}
-                                    {{--<tr>--}}
-                                    {{--<th class="text-center border-right">No.</th>--}}
-                                    {{--<th>Bidang Kerjasama</th>--}}
-                                    {{--<th>Instansi Partner</th>--}}
-                                    {{--<th>Jenis</th>--}}
-                                    {{--<th>Bentuk</th>--}}
-                                    {{--<th class="text-center">Tanggal Berakhir</th>--}}
-                                    {{--<th class="text-center">Aksi</th>--}}
-                                    {{--</tr>--}}
-                                    {{--</tfoot>--}}
                                 </table>
                             </div>
                         </div>

@@ -13,5 +13,10 @@
 
 Route::get('/', 'PustahaController@index');
 Route::get('pustahas', 'PustahaController@index');
+Route::get('pustahas/create', 'PustahaController@create');
+Route::post('pustahas/create', 'PustahaController@store');
+Route::get('pustahas/ajax', 'PustahaController@getAjax');
+
+Route::get('users/ajax/search', 'UserController@searchUser');
 
 Route::get('callback.php', 'CallbackController@callback');
