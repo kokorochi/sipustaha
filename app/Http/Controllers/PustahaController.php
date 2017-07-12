@@ -61,7 +61,7 @@ class PustahaController extends MainController {
                 $loggedIn = $credential->logged_in;
                 if ($loggedIn)
                 {
-                    //kalau udah login
+                    return $credential;
                 } else
                 {
                     setcookie('ssotok', null, -1, '/');
