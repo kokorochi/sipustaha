@@ -33,7 +33,7 @@ class StorePustahaRequest extends FormRequest {
                 'editor'        => 'required|max:191',
                 'issue'         => 'required|max:191',
                 'isbn_issn'     => 'required|max:191',
-                'file_name_ori' => 'required',
+                'file_name_ori' => 'required|mimetypes:application/pdf',
             ];
         } elseif ($this->input('pustaha_type') == 'JURNAL')
         {
@@ -46,7 +46,7 @@ class StorePustahaRequest extends FormRequest {
                 'issue'         => 'required|max:191',
                 'isbn_issn'     => 'required|max:191',
                 'url_address'   => 'required|max:191',
-                'file_name_ori' => 'required',
+                'file_name_ori' => 'required|mimetypes:application/pdf',
             ];
         } elseif ($this->input('pustaha_type') == 'PROSIDING')
         {
@@ -60,7 +60,7 @@ class StorePustahaRequest extends FormRequest {
                 'pages'         => 'required|integer|max:99999',
                 'isbn_issn'     => 'required|max:191',
                 'url_address'   => 'required|max:191',
-                'file_name_ori' => 'required',
+                'file_name_ori' => 'required|mimetypes:application/pdf',
             ];
         } elseif ($this->input('pustaha_type') == 'HKI' || $this->input('pustaha_type') == 'PATEN')
         {
@@ -79,7 +79,7 @@ class StorePustahaRequest extends FormRequest {
                 'announcement_place'  => 'required|max:191',
                 'protection_period'   => 'required|max:191',
                 'registration_no'     => 'required|max:191',
-                'file_name_ori'       => 'required',
+                'file_name_ori'       => 'required|mimetypes:application/pdf',
             ];
         }
     }

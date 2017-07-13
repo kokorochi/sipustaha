@@ -133,7 +133,7 @@ class PustahaController extends MainController {
         ));
     }
 
-    public function store(Request $request)
+    public function store(StorePustahaRequest $request)
     {
         if ($request->pustaha_type == 'BUKU')
         {
