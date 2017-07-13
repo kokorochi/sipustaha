@@ -15,7 +15,7 @@ class CreatePustahasTable extends Migration
     {
         Schema::create('pustahas', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('pustaha_type', false, true);
+            $table->string('pustaha_type', 10);
             $table->string('author', 100)->nullable();
             $table->text('title')->nullable();
             $table->text('name')->nullable();

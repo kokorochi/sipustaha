@@ -237,9 +237,10 @@ class PustahaController extends MainController {
     {
         $ret = new \stdClass();
         $ret->pustaha = new Pustaha();
+        $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->username;
         $ret->pustaha->title = $request->title;
-        $ret->pustaha->pustaha_date = $request->pustaha_date;
+        $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->city = $request->city;
         $ret->pustaha->country = $request->country;
         $ret->pustaha->publisher = $request->publisher;
@@ -271,10 +272,11 @@ class PustahaController extends MainController {
     {
         $ret = new \stdClass();
         $ret->pustaha = new Pustaha();
+        $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->username;
         $ret->pustaha->title = $request->title;
         $ret->pustaha->name = $request->name;
-        $ret->pustaha->pustaha_date = $request->pustaha_date;
+        $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->pages = $request->pages;
         $ret->pustaha->volume = $request->volume;
         $ret->pustaha->issue = $request->issue;
@@ -305,11 +307,12 @@ class PustahaController extends MainController {
     {
         $ret = new \stdClass();
         $ret->pustaha = new Pustaha();
+        $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->username;
         $ret->pustaha->publisher = $request->publisher;
         $ret->pustaha->title = $request->title;
         $ret->pustaha->name = $request->name;
-        $ret->pustaha->pustaha_date = $request->pustaha_date;
+        $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->city = $request->city;
         $ret->pustaha->country = $request->country;
         $ret->pustaha->pages = $request->pages;
@@ -340,9 +343,10 @@ class PustahaController extends MainController {
     {
         $ret = new \stdClass();
         $ret->pustaha = new Pustaha();
+        $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->username;
         $ret->pustaha->propose_no = $request->propose_no;
-        $ret->pustaha->pustaha_date = $request->pustaha_date;
+        $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->creator_name = $request->creator_name;
         $ret->pustaha->creator_address = $request->creator_name;
         $ret->pustaha->creator_citizenship = $request->creator_name;
@@ -361,13 +365,14 @@ class PustahaController extends MainController {
         return $ret;
     }
 
-    private function assignPatent()
+    private function assignPatent($request)
     {
         $ret = new \stdClass();
         $ret->pustaha = new Pustaha();
+        $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->username;
         $ret->pustaha->propose_no = $request->propose_no;
-        $ret->pustaha->pustaha_date = $request->pustaha_date;
+        $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->creator_name = $request->creator_name;
         $ret->pustaha->creator_address = $request->creator_name;
         $ret->pustaha->creator_citizenship = $request->creator_name;
