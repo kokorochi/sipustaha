@@ -15,19 +15,15 @@ $(document).ready(function () {
                     orderable: false,
                     defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Edit"><button class="btn btn-theme btn-sm rounded edit"><i class="fa fa-pencil" style="color:white;"></i></button></a>' +
                     '<a data-toggle="tooltip" data-placement="top" data-original-title="Delete"><button class="btn btn-danger btn-sm rounded delete" data-toggle="modal" data-target="#delete"><i class="fa fa-times"></i></button></a>',
-                    targets: 7
+                    targets: 6
                 },
                 {
                     className: "dt-center",
-                    targets: [1, 4, 5, 6, 7]
+                    targets: [1, 4, 5, 6]
                 },
                 {
                     width: "5%",
                     targets: 1,
-                },
-                {
-                    width: "10%",
-                    targets: 6,
                 },
                 {
                     visible: false,

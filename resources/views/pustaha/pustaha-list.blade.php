@@ -48,11 +48,10 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>No.</th>
-                                        <th>Bidang Kerjasama</th>
-                                        <th>Instansi Partner</th>
-                                        <th>Jenis</th>
-                                        <th>Bentuk</th>
-                                        <th>Tanggal Berakhir</th>
+                                        <th>Jenis Pustaha</th>
+                                        <th>Judul</th>
+                                        <th>Tanggal</th>
+                                        <th>ISBN/ISSN</th>
                                         <th>Aksi</th>
                                     </tr>
                                     </thead>
