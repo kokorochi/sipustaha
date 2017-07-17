@@ -23,7 +23,8 @@ Route::get('pustahas/download-document', 'PustahaController@downloadDocument');
 Route::get('pustahas/ajax', 'PustahaController@getAjax');
 
 Route::get('approvals', 'ApprovalController@index');
-Route::get('approvals/create', 'ApprovalController@showApproval');
+Route::get('approvals/lp/create', 'ApprovalController@showApprovalLp');
+Route::get('approvals/wr3/create', 'ApprovalController@showApprovalWr3');
 
 Route::get('users/ajax/search', 'UserController@searchUser');
 

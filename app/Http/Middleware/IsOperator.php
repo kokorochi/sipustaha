@@ -20,7 +20,7 @@ class IsOperator {
         $is_super = UserAuth::where('username', $user->username)->where('auth_type', 'SU')->first();
         $is_operator = UserAuth::where('username', $user->username)->where(function ($query)
         {
-            $query->where('auth_type', 'OPEL')->orWhere('auth_type', 'OABDI');
+            $query->where('auth_type', 'OPEL')->orWhere('auth_type', 'OWR3');
         })->first();
         if (empty($is_super) && empty($is_operator))
             return abort('403');
