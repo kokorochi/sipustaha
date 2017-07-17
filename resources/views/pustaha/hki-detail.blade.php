@@ -14,6 +14,9 @@
     @include('layout.input-text', ['passing_variable' => 'announcement_place', 'passing_description' => 'Tempat diumumkan di Indonesia/Luar Negeri'])
     @include('layout.input-text', ['passing_variable' => 'protection_period', 'passing_description' => 'Jangka Waktu Perlindungan'])
     @include('layout.input-text', ['passing_variable' => 'registration_no', 'passing_description' => 'Nomor Pencatatan'])
-    @include('layout.input-upload', ['passing_variable' => 'file_name_ori', 'passing_description' => 'Unggah File'])
+    @include('layout.input-upload', ['passing_variable' => 'file_name_ori', 'passing_description' => 'File', 'passing_type' => '1'])
+    @include('layout.input-upload', ['passing_variable' => 'file_claim_request_ori', 'passing_description' => 'File (Surat Permohonan)', 'passing_type' => '2'])
+    @include('layout.input-upload', ['passing_variable' => 'file_claim_accomodation_ori', 'passing_description' => 'File (Bukti Penyebarluasan IPTEK)', 'passing_type' => '3'])
+    @include('layout.input-upload', ['passing_variable' => 'file_certification_ori', 'passing_description' => 'File (Sertifikasi)', 'passing_type' => '4'])
 
 </div>

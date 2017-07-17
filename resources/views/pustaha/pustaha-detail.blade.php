@@ -71,7 +71,7 @@
                             </div>
                             <div class="clearfix"></div>
                         </div><!-- /.panel-heading -->
-                        <div class="panel-body">
+                        <div id="pustaha-container" class="panel-body">
                             @if($upd_mode == 'display')
                                 <div class="form-group">
                                     <a href="{{url('pustahas/edit?id=' . $pustaha->id)}}"
@@ -94,8 +94,11 @@
                                         <option value="BUKU" {{$pustaha['pustaha_type'] == 'BUKU' ? 'selected' : null}}>
                                             Buku
                                         </option>
-                                        <option value="JURNAL" {{$pustaha['pustaha_type'] == 'JURNAL' ? 'selected' : null}}>
-                                            Jurnal
+                                        <option value="JURNAL-N" {{$pustaha['pustaha_type'] == 'JURNAL-N' ? 'selected' : null}}>
+                                            Jurnal Nasional
+                                        </option>
+                                        <option value="JURNAL-I" {{$pustaha['pustaha_type'] == 'JURNAL-I' ? 'selected' : null}}>
+                                            Jurnal Internasional
                                         </option>
                                         <option value="PROSIDING" {{$pustaha['pustaha_type'] == 'PROSIDING' ? 'selected' : null}}>
                                             Prosiding

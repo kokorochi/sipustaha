@@ -6,14 +6,14 @@ $(document).ready(function () {
         baseUrl = getUrl.protocol + "//" + getUrl.host + "/";
 
     if ($("#pustaha-list").length) {
-        var coopDatatable = $("#pustaha-list").dataTable({
+        var pustahaDatatable = $("#pustaha-list").dataTable({
             autoWidth: false,
             responsive: true,
             ajax: baseUrl + 'pustahas/ajax',
             columnDefs: [
                 {
                     orderable: false,
-                    defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Edit"><button class="btn btn-theme btn-sm rounded edit"><i class="fa fa-pencil" style="color:white;"></i></button></a>' +
+                    defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Display"><button class="btn btn-theme btn-sm rounded display"><i class="fa fa-eye" style="color:white;"></i></button></a>' +
                     '<a data-toggle="tooltip" data-placement="top" data-original-title="Delete"><button class="btn btn-danger btn-sm rounded delete" data-toggle="modal" data-target="#delete"><i class="fa fa-times"></i></button></a>',
                     targets: 6
                 },
@@ -32,7 +32,7 @@ $(document).ready(function () {
             ],
         });
 
-        $(document).on("click", "#partner-list a button.delete", function (e) {
+        $(document).on("click", "#pustaha-list a button.delete", function (e) {
             e.preventDefault();
             var dt_row = $(this).closest("li").data("dt-row");
 
@@ -40,16 +40,16 @@ $(document).ready(function () {
                 var position = dt_row;
             } else {
                 var target_row = $(this).closest("tr").get(0);
-                var position = partnerDatatable.fnGetPosition(target_row);
+                var position = pustahaDatatable.fnGetPosition(target_row);
             }
-            var partner_id = partnerDatatable.fnGetData(position)[0];
+            var id = pustahaDatatable.fnGetData(position)[0];
 
-            $("#delete form").attr("action", baseUrl + "partners/delete?id=" + partner_id);
+            $("#delete form").attr("action", baseUrl + "pustahas/delete?id=" + id);
 
             // window.open(baseUrl + "partners/delete?id=" + partner_id);
         });
 
-        $(document).on("click", "#partner-list a button.edit", function (e) {
+        $(document).on("click", "#pustaha-list a button.display", function (e) {
             e.preventDefault();
             var dt_row = $(this).closest("li").data("dt-row");
 
@@ -57,11 +57,11 @@ $(document).ready(function () {
                 var position = dt_row;
             } else {
                 var target_row = $(this).closest("tr").get(0);
-                var position = partnerDatatable.fnGetPosition(target_row);
+                var position = pustahaDatatable.fnGetPosition(target_row);
             }
-            var partner_id = partnerDatatable.fnGetData(position)[0];
+            var id = pustahaDatatable.fnGetData(position)[0];
 
-            window.open(baseUrl + "partners/edit?id=" + partner_id, "_self");
+            window.open(baseUrl + "pustahas/display?id=" + id, "_self");
         });
     }
 
@@ -124,7 +124,7 @@ $(document).ready(function () {
     if ($("select[name=pustaha_type]").val() == "BUKU") {
         toggleCoopDetail(true, false, false, false, false);
     }
-    else if ($("select[name=pustaha_type]").val() == "JURNAL") {
+    else if ($("select[name=pustaha_type]").val() == "JURNAL-N" || $("select[name=pustaha_type]").val() == "JURNAL-I") {
         toggleCoopDetail(false, true, false, false, false);
     }
     else if ($("select[name=pustaha_type]").val() == "PROSIDING") {
@@ -161,7 +161,7 @@ $(document).ready(function () {
     $("select[name=pustaha_type]").change(function () {
         if ($('select[name=pustaha_type]').val() == 'BUKU') {
             toggleCoopDetail(true, false, false, false, false);
-        } else if ($('select[name=pustaha_type]').val() == 'JURNAL') {
+        } else if ($('select[name=pustaha_type]').val() == 'JURNAL-N' || $('select[name=pustaha_type]').val() == 'JURNAL-I') {
             toggleCoopDetail(false, true, false, false, false);
         } else if ($('select[name=pustaha_type]').val() == 'PROSIDING') {
             toggleCoopDetail(false, false, true, false, false);
@@ -206,7 +206,7 @@ $(document).ready(function () {
     }
 
     if ($("input[name=upd_mode]").val() == 'display') {
-        $("#tambah_kerma input:visible, #tambah_kerma select:visible, #tambah_kerma textarea:visible").attr("disabled", true);
+        $("#pustaha-container input:visible, #pustaha-container select:visible, #pustaha-container textarea:visible").attr("disabled", true);
     }
 
     if ($(".select2").length) {
@@ -321,9 +321,6 @@ $(document).ready(function () {
             });
         },
         select: function (event, ui) {
-            // $("input[name=item_username]").val(ui.item.id);
-            console.log(event);
-            console.log(ui);
             $(this).parents("tr").find("input[name^=item_username]").val(ui.item.id);
             $('.search-employee').trigger('change');
         }
@@ -353,11 +350,11 @@ $(document).ready(function () {
 
     $(document).on("change", "input[name^=item_external]", function () {
         if ($(this).is(":checked")) {
-            $(this).parents("tr").find("input[name^=item_username]").attr("disabled", true);
+            $(this).parents("tr").find("input[name^=item_username_display]").attr("disabled", true);
             $(this).parents("tr").find("input[name^=item_name]").attr("disabled", false);
             $(this).parents("tr").find("input[name^=item_affiliation]").attr("disabled", false);
         } else {
-            $(this).parents("tr").find("input[name^=item_username]").attr("disabled", false);
+            $(this).parents("tr").find("input[name^=item_username_display]").attr("disabled", false);
             $(this).parents("tr").find("input[name^=item_name]").attr("disabled", true);
             $(this).parents("tr").find("input[name^=item_affiliation]").attr("disabled", true);
         }
@@ -417,7 +414,7 @@ $(document).ready(function () {
             $('#hki-container').hide().find('input, textarea, select').attr('disabled', true);
             $('#patent-container').hide().find('input, textarea, select').attr('disabled', true);
         }
-        else if ($("select[name=pustaha_type]").val() == "JURNAL") {
+        else if ($("select[name=pustaha_type]").val() == "JURNAL-N" || $("select[name=pustaha_type]").val() == "JURNAL-I") {
             $('#book-container').hide().find('input, textarea, select').attr('disabled', true);
             $('#proceeding-container').hide().find('input, textarea, select').attr('disabled', true);
             $('#hki-container').hide().find('input, textarea, select').attr('disabled', true);
@@ -440,6 +437,14 @@ $(document).ready(function () {
             $('#journal-container').hide().find('input, textarea, select').attr('disabled', true);
             $('#hki-container').hide().find('input, textarea, select').attr('disabled', true);
             $('#proceeding-container').hide().find('input, textarea, select').attr('disabled', true);
+        }
+        if ($(".item-table:visible").length) {
+            $.each($("input[name^=item_]:visible:disabled"), function(index, value){
+                $(value).attr('disabled', false);
+            });
+            // $.each($("input[name^=item_]:visible"), function(index, value){
+            //     $(value).attr('disabled', false);
+            // });
         }
     });
 });

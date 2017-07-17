@@ -1,6 +1,29 @@
 @extends('main_layout')
 
 @section('content')
+    <!-- Modal for delete unit -->
+    <div id="delete" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Hapus Pustaha</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah anda yakin ingin menghapus data ini?</p>
+                </div>
+                <div class="modal-footer">
+                    <form action="" method="post">
+                        <input type="hidden" name="_method" value="delete">
+                        {{csrf_field()}}
+                        <button type="submit" class="btn btn-danger rounded">OK</button>
+                        <button type="button" class="btn btn-default rounded" data-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
     <!-- START @PAGE CONTENT -->
     <section id="page-content">
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\FlowStatus;
 use App\Http\Requests\StorePustahaRequest;
 use App\Pustaha;
 use App\PustahaItem;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Storage;
 use View;
 use parinpan\fanjwt\libs\JWTAuth;
@@ -139,7 +141,7 @@ class PustahaController extends MainController {
         {
             $path = 'book';
             $var_pustaha = $this->assignBook($request);
-        } elseif ($request->pustaha_type == 'JURNAL')
+        } elseif ($request->pustaha_type == 'JURNAL-N' || $request->pustaha_type == 'JURNAL-I')
         {
             $path = 'journal';
             $var_pustaha = $this->assignJournal($request);
@@ -157,22 +159,212 @@ class PustahaController extends MainController {
             $var_pustaha = $this->assignPatent($request);
         }
 
+        $var_pustaha->flow_status = new FlowStatus();
+        $var_pustaha->flow_status->item = 1;
+        $var_pustaha->flow_status->status_code = 'SB'; //Submit
+        $var_pustaha->flow_status->description = 'Submitted';
+        $var_pustaha->flow_status->created_by = Auth::user()->username;
+
         DB::transaction(function () use ($var_pustaha, $path, $request)
         {
             $saved_pustaha = $var_pustaha->pustaha->save();
             if ($saved_pustaha)
             {
+                $path = $path . '/' . $var_pustaha->pustaha->id;
                 if (isset($var_pustaha->pustaha_items))
                 {
                     $var_pustaha->pustaha->pustahaItem()->saveMany($var_pustaha->pustaha_items);
                 }
+                $var_pustaha->pustaha->flowStatus()->save($var_pustaha->flow_status);
 
                 $path = Storage::url('upload/' . Auth::user()->username . '/' . $path . '/');
                 $request->file('file_name_ori')->storeAs($path, $var_pustaha->pustaha->file_name);
+                $request->file('file_claim_request_ori')->storeAs($path, $var_pustaha->pustaha->file_claim_request);
+                $request->file('file_claim_accomodation_ori')->storeAs($path, $var_pustaha->pustaha->file_claim_accomodation);
+                $request->file('file_certification_ori')->storeAs($path, $var_pustaha->pustaha->file_certification);
             }
         });
 
+        $request->session()->flash('alert-success', 'Pustaha berhasil dibuat');
+
         return redirect()->intended('/');
+    }
+
+    public function display()
+    {
+        $id = Input::get('id');
+        $pustaha = Pustaha::find($id);
+        if (empty($pustaha))
+        {
+            return abort('404');
+        }
+        array_push($this->css['pages'], 'global/plugins/bower_components/bootstrap-datepicker-vitalets/css/datepicker.css');
+        array_push($this->css['pages'], 'kartik-v/bootstrap-fileinput/css/fileinput.min.css');
+
+        array_push($this->js['scripts'], 'global/plugins/bower_components/bootstrap-datepicker-vitalets/js/bootstrap-datepicker.js');
+        array_push($this->js['scripts'], 'global/plugins/bower_components/jquery-validation/dist/jquery.validate.min.js');
+        array_push($this->js['scripts'], 'kartik-v/bootstrap-fileinput/js/fileinput.min.js');
+        array_push($this->js['scripts'], 'global/plugins/bower_components/jquery.inputmask/dist/jquery.inputmask.bundle.min.js');
+
+        array_push($this->js['plugins'], 'global/plugins/bower_components/jquery-ui/jquery-ui.js');
+        array_push($this->js['plugins'], 'global/plugins/bower_components/jquery-ui/ui/minified/autocomplete.min.js');
+
+        View::share('css', $this->css);
+        View::share('js', $this->js);
+
+        $upd_mode = 'display';
+        $action_url = '';
+        $page_title = 'Lihat Pustaha';
+        $disabled = 'disabled';
+
+        $pustaha_items = $pustaha->pustahaItem()->get();
+        $simsdm = new Simsdm();
+        foreach ($pustaha_items as $pustaha_item)
+        {
+            if (! empty($pustaha_item['item_username']))
+            {
+                $employee = $simsdm->getEmployee($pustaha_item['item_username']);
+                $pustaha_item['item_external'] = null;
+                $pustaha_item['item_username_display'] = 'NIP: ' . $pustaha_item['item_username'] . ', NIDN:' . $employee->nidn . ', Nama: ' . $employee->full_name;
+            } else
+            {
+                $pustaha_item['item_external'] = 'X';
+            }
+        }
+        $flow_statuses = $pustaha->flowStatus()->get();
+
+        return view('pustaha.pustaha-detail', compact(
+            'pustaha',
+            'pustaha_items',
+            'flow_statuses',
+            'upd_mode',
+            'action_url',
+            'page_title',
+            'disabled'
+        ));
+    }
+
+    public function edit()
+    {
+        $id = Input::get('id');
+        $pustaha = Pustaha::find($id);
+        if (empty($pustaha))
+        {
+            return abort('404');
+        }
+        array_push($this->css['pages'], 'global/plugins/bower_components/bootstrap-datepicker-vitalets/css/datepicker.css');
+        array_push($this->css['pages'], 'kartik-v/bootstrap-fileinput/css/fileinput.min.css');
+
+        array_push($this->js['scripts'], 'global/plugins/bower_components/bootstrap-datepicker-vitalets/js/bootstrap-datepicker.js');
+        array_push($this->js['scripts'], 'global/plugins/bower_components/jquery-validation/dist/jquery.validate.min.js');
+        array_push($this->js['scripts'], 'kartik-v/bootstrap-fileinput/js/fileinput.min.js');
+        array_push($this->js['scripts'], 'global/plugins/bower_components/jquery.inputmask/dist/jquery.inputmask.bundle.min.js');
+
+        array_push($this->js['plugins'], 'global/plugins/bower_components/jquery-ui/jquery-ui.js');
+        array_push($this->js['plugins'], 'global/plugins/bower_components/jquery-ui/ui/minified/autocomplete.min.js');
+
+        View::share('css', $this->css);
+        View::share('js', $this->js);
+
+        $upd_mode = 'edit';
+        $action_url = '';
+        $page_title = 'Update Pustaha';
+        $disabled = '';
+
+        $pustaha_items = $pustaha->pustahaItem()->get();
+        $simsdm = new Simsdm();
+        foreach ($pustaha_items as $pustaha_item)
+        {
+            if (! empty($pustaha_item['item_username']))
+            {
+                $employee = $simsdm->getEmployee($pustaha_item['item_username']);
+                $pustaha_item['item_external'] = null;
+                $pustaha_item['item_username_display'] = 'NIP: ' . $pustaha_item['item_username'] . ', NIDN:' . $employee->nidn . ', Nama: ' . $employee->full_name;
+            } else
+            {
+                $pustaha_item['item_external'] = 'X';
+            }
+        }
+        $flow_statuses = $pustaha->flowStatus()->get();
+
+        return view('pustaha.pustaha-detail', compact(
+            'pustaha',
+            'pustaha_items',
+            'flow_statuses',
+            'upd_mode',
+            'action_url',
+            'page_title',
+            'disabled'
+        ));
+    }
+
+    public function update()
+    {
+
+    }
+
+    public function destroy()
+    {
+        $id = Input::get('id');
+        $pustaha = Pustaha::find($id);
+        if(empty($pustaha))
+        {
+            return abort('404');
+        }
+        $saved = $pustaha->delete();
+        if($saved)
+            session()->flash('alert-success', 'Pustaha berhasil dihapus');
+        else
+            session()->flash('alert-danger', 'Terjadi kesalahan pada sistem, Pustaha gagal dihapus');
+
+        return redirect()->intended('/');
+    }
+
+    public function downloadDocument()
+    {
+        $input = Input::get();
+        if (! isset($input['id']) || ! isset($input['type']))
+        {
+            return abort('404');
+        }
+        $pustaha = Pustaha::find($input['id']);
+        if (! is_null($pustaha))
+        {
+            if ($pustaha->pustaha_type == 'BUKU')
+                $path = 'book';
+            elseif ($pustaha->pustaha_type == 'JURNAL-N' || $pustaha->pustaha_type == 'JURNAL-I')
+                $path = 'journal';
+            elseif ($pustaha->pustaha_type == 'PROSIDING')
+                $path = 'proceeding';
+            elseif ($pustaha->pustaha_type == 'HKI')
+                $path = 'hki';
+            elseif ($pustaha->pustaha_type == 'PATEN')
+                $path = 'patent';
+            $path = $path . '/' . $pustaha->id;
+            $path = Storage::url('upload/' . Auth::user()->username . '/' . $path . '/');
+
+            if ($input['type'] == '1')
+            {
+                $path = storage_path() . '/app' . $path . '/' . $pustaha->file_name;
+                return response()->download($path, $pustaha->file_name_ori);
+            } elseif ($input['type'] == '2')
+            {
+                $path = storage_path() . '/app' . $path . '/' . $pustaha->file_claim_request;
+                return response()->download($path, $pustaha->file_claim_request_ori);
+            } elseif ($input['type'] == '3')
+            {
+                $path = storage_path() . '/app' . $path . '/' . $pustaha->file_claim_accomodation;
+                return response()->download($path, $pustaha->file_claim_accomodation_ori);
+            } elseif ($input['type'] == '4')
+            {
+                $path = storage_path() . '/app' . $path . '/' . $pustaha->file_certification;
+                return response()->download($path, $pustaha->file_certification_ori);
+            }
+        } else
+        {
+            return abort('404');
+        }
+
     }
 
     public function getAjax()
@@ -185,7 +377,7 @@ class PustahaController extends MainController {
         foreach ($pustahas as $pustaha)
         {
             if ($pustaha->pustaha_type == 'BUKU' ||
-                $pustaha->pustaha_type == 'JURNAL' ||
+                $pustaha->pustaha_type == 'JURNAL-N' || $pustaha->pustaha_type == 'JURNAL-I' ||
                 $pustaha->pustaha_type = -'PROSIDING'
             )
             {
@@ -197,7 +389,7 @@ class PustahaController extends MainController {
                     {
 
                         $full_name = $this->simsdm->getEmployee($pustaha_item->username)->full_name;
-                        if(!empty($full_name))
+                        if (! empty($full_name))
                             $co_authors = $co_authors . $full_name . '; ';
                     } else
                     {
@@ -211,7 +403,7 @@ class PustahaController extends MainController {
             $data['data'][$i][2] = $pustaha->pustaha_type;
             $data['data'][$i][3] = $pustaha->title;
             $data['data'][$i][4] = $pustaha->pustaha_date;
-            if(!empty($pustaha->isbn_issn))
+            if (! empty($pustaha->isbn_issn))
                 $data['data'][$i][5] = $pustaha->isbn_issn;
             else
                 $data['data'][$i][5] = $pustaha->registration_no;
@@ -249,6 +441,12 @@ class PustahaController extends MainController {
         $ret->pustaha->isbn_issn = $request->isbn_issn;
         $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
         $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
 
         $ret->pustaha_items = new Collection();
         foreach ($request->item_username_display as $key => $item)
@@ -284,6 +482,12 @@ class PustahaController extends MainController {
         $ret->pustaha->url_address = $request->url_address;
         $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
         $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
 
         $ret->pustaha_items = new Collection();
         foreach ($request->item_username_display as $key => $item)
@@ -320,6 +524,12 @@ class PustahaController extends MainController {
         $ret->pustaha->url_address = $request->url_address;
         $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
         $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
 
         $ret->pustaha_items = new Collection();
         foreach ($request->item_username_display as $key => $item)
@@ -361,6 +571,12 @@ class PustahaController extends MainController {
         $ret->pustaha->registration_no = $request->registration_no;
         $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
         $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
 
         return $ret;
     }
@@ -387,6 +603,12 @@ class PustahaController extends MainController {
         $ret->pustaha->registration_no = $request->registration_no;
         $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
         $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
 
         return $ret;
     }
