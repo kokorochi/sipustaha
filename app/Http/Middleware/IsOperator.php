@@ -23,6 +23,7 @@ class IsOperator {
             $query->where('auth_type', 'OPEL')->orWhere('auth_type', 'OWR3');
         })->first();
         if (empty($is_super) && empty($is_operator))
+            // return dd($is_super);
             return abort('403');
 
         return $next($request);

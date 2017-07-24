@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\FlowStatus;
+use App\Approval;
 use App\Http\Requests\StorePustahaRequest;
 use App\Pustaha;
 use App\PustahaItem;
@@ -55,7 +55,8 @@ class PustahaController extends MainController {
             $login = new \stdClass();
             $login->logged_in = true;
             $login->payload = new \stdClass();
-            $login->payload->identity = env('LOGIN_USERNAME');
+            $login->payload->identity = env('LOGIN_USERNAME'); // nampung nip
+            $login->payload->user_id = env('LOGIN_ID');
         } else
         {
             $login = JWTAuth::communicate('https://akun.usu.ac.id/auth/listen', @$_COOKIE['ssotok'], function ($credential)
@@ -86,6 +87,7 @@ class PustahaController extends MainController {
         {
             $user = new User();
             $user->username = $login->payload->identity;
+            $user->user_id = $login->payload->user_id;
             Auth::login($user);
 
             $this->setUserInfo();
@@ -159,11 +161,11 @@ class PustahaController extends MainController {
             $var_pustaha = $this->assignPatent($request);
         }
 
-        $var_pustaha->flow_status = new FlowStatus();
-        $var_pustaha->flow_status->item = 1;
-        $var_pustaha->flow_status->status_code = 'SB'; //Submit
-        $var_pustaha->flow_status->description = 'Submitted';
-        $var_pustaha->flow_status->created_by = Auth::user()->username;
+        $var_pustaha->approval = new Approval();
+        $var_pustaha->approval->item = 1; // find last item where pustaha_id X and plus 1
+        $var_pustaha->approval->approval_status = 'SB'; //Submit
+        $var_pustaha->approval->approval_annotation = 'Submitted';
+        $var_pustaha->approval->created_by = Auth::user()->user_id;
 
         DB::transaction(function () use ($var_pustaha, $path, $request)
         {
@@ -175,9 +177,9 @@ class PustahaController extends MainController {
                 {
                     $var_pustaha->pustaha->pustahaItem()->saveMany($var_pustaha->pustaha_items);
                 }
-                $var_pustaha->pustaha->flowStatus()->save($var_pustaha->flow_status);
+                $var_pustaha->pustaha->approval()->save($var_pustaha->approval);
 
-                $path = Storage::url('upload/' . Auth::user()->username . '/' . $path . '/');
+                $path = Storage::url('upload/' . Auth::user()->user_id . '/' . $path . '/');
                 $request->file('file_name_ori')->storeAs($path, $var_pustaha->pustaha->file_name);
                 $request->file('file_claim_request_ori')->storeAs($path, $var_pustaha->pustaha->file_claim_request);
                 $request->file('file_claim_accomodation_ori')->storeAs($path, $var_pustaha->pustaha->file_claim_accomodation);
@@ -213,7 +215,7 @@ class PustahaController extends MainController {
         View::share('js', $this->js);
 
         $upd_mode = 'display';
-        $action_url = '';
+        $action_url = 'pustahas/edit';
         $page_title = 'Lihat Pustaha';
         $disabled = 'disabled';
 
@@ -231,12 +233,12 @@ class PustahaController extends MainController {
                 $pustaha_item['item_external'] = 'X';
             }
         }
-        $flow_statuses = $pustaha->flowStatus()->get();
+        $approvales = $pustaha->approval()->get();
 
         return view('pustaha.pustaha-detail', compact(
             'pustaha',
             'pustaha_items',
-            'flow_statuses',
+            'approvales',
             'upd_mode',
             'action_url',
             'page_title',
@@ -267,7 +269,7 @@ class PustahaController extends MainController {
         View::share('js', $this->js);
 
         $upd_mode = 'edit';
-        $action_url = '';
+        $action_url = 'pustahas/edit';
         $page_title = 'Update Pustaha';
         $disabled = '';
 
@@ -285,12 +287,12 @@ class PustahaController extends MainController {
                 $pustaha_item['item_external'] = 'X';
             }
         }
-        $flow_statuses = $pustaha->flowStatus()->get();
+        $approvales = $pustaha->approval()->get();
 
         return view('pustaha.pustaha-detail', compact(
             'pustaha',
             'pustaha_items',
-            'flow_statuses',
+            'approvales',
             'upd_mode',
             'action_url',
             'page_title',
@@ -298,9 +300,73 @@ class PustahaController extends MainController {
         ));
     }
 
-    public function update()
+    public function update(StorePustahaRequest $request)
     {
+        // note : check all assign is update or create, if create is new || update is find. and db : transaction delete all pustaha items before save
 
+        if ($request->pustaha_type == 'BUKU')
+        {
+            $path = 'book';
+            $var_pustaha = $this->assignBook($request);
+
+        } elseif ($request->pustaha_type == 'JURNAL-N' || $request->pustaha_type == 'JURNAL-I')
+        {
+            $path = 'journal';
+            $var_pustaha = $this->assignJournal($request);
+        } elseif ($request->pustaha_type == 'PROSIDING')
+        {
+            $path = 'proceeding';
+            $var_pustaha = $this->assignProceeding($request);
+        } elseif ($request->pustaha_type == 'HKI')
+        {
+            $path = 'hki';
+            $var_pustaha = $this->assignHki($request);
+        } elseif ($request->pustaha_type == 'PATEN')
+        {
+            $path = 'patent';
+            $var_pustaha = $this->assignPatent($request);
+        }
+
+        $last_item = Approval::where('pustaha_id',$request->id)->orderBy('id', 'desc')->first();
+
+        $var_pustaha->approval = new Approval();
+        $var_pustaha->approval->item = $last_item->item + 1;
+        $var_pustaha->approval->approval_status = 'UP'; //Updateda
+        $var_pustaha->approval->approval_annotation = 'Updated';
+        $var_pustaha->approval->created_by = Auth::user()->user_id;
+
+        DB::transaction(function () use ($var_pustaha, $path, $request)
+        {
+            PustahaItem::where('pustaha_id', $request->id)->delete(); 
+         
+            $saved_pustaha = $var_pustaha->pustaha->save();
+         
+            if ($saved_pustaha)
+            {
+                $path = $path . '/' . $var_pustaha->pustaha->id;
+                if (isset($var_pustaha->pustaha_items))
+                {
+                    $var_pustaha->pustaha->pustahaItem()->saveMany($var_pustaha->pustaha_items);
+                }
+                $var_pustaha->pustaha->approval()->save($var_pustaha->approval);
+
+                $path = Storage::url('upload/' . Auth::user()->user_id . '/' . $path . '/');
+                if(!empty($request->file('file_name_ori')))
+                {
+                    $request->file('file_name_ori')->storeAs($path, $var_pustaha->pustaha->file_name);
+                }elseif (!empty($request->file('file_claim_request_ori'))){
+                    $request->file('file_claim_request_ori')->storeAs($path, $var_pustaha->pustaha->file_claim_request);
+                }elseif (!empty($request->file('file_claim_accomodation_ori'))){
+                    $request->file('file_claim_accomodation_ori')->storeAs($path, $var_pustaha->pustaha->file_claim_accomodation);
+                }elseif (!empty($request->file('file_certification_ori'))){
+                    $request->file('file_certification_ori')->storeAs($path, $var_pustaha->pustaha->file_certification);
+                }
+            }
+        });
+
+        $request->session()->flash('alert-success', 'Pustaha berhasil di-update');
+
+        return redirect()->intended('/');
     }
 
     public function destroy()
@@ -328,6 +394,7 @@ class PustahaController extends MainController {
             return abort('404');
         }
         $pustaha = Pustaha::find($input['id']);
+
         if (! is_null($pustaha))
         {
             if ($pustaha->pustaha_type == 'BUKU')
@@ -341,7 +408,8 @@ class PustahaController extends MainController {
             elseif ($pustaha->pustaha_type == 'PATEN')
                 $path = 'patent';
             $path = $path . '/' . $pustaha->id;
-            $path = Storage::url('upload/' . Auth::user()->username . '/' . $path . '/');
+            $path = Storage::url('upload/' . $pustaha->author . '/' . $path . '/');
+
 
             if ($input['type'] == '1')
             {
@@ -369,7 +437,7 @@ class PustahaController extends MainController {
 
     public function getAjax()
     {
-        $pustahas = Pustaha::where('author', Auth::user()->username)->get();
+        $pustahas = Pustaha::where('author', Auth::user()->user_id)->get();
 
         $data = [];
 
@@ -398,6 +466,9 @@ class PustahaController extends MainController {
                 }
             }
 
+            $approval = Approval::where('pustaha_id', $pustaha->id)->orderBy('id', 'desc')->first();
+            $status = $approval->statusCode()->first();
+
             $data['data'][$i][0] = $pustaha->id;
             $data['data'][$i][1] = $i + 1;
             $data['data'][$i][2] = $pustaha->pustaha_type;
@@ -407,7 +478,7 @@ class PustahaController extends MainController {
                 $data['data'][$i][5] = $pustaha->isbn_issn;
             else
                 $data['data'][$i][5] = $pustaha->registration_no;
-
+            $data['data'][$i][6] = $status->code_description;
             $i++;
         }
 
@@ -428,9 +499,15 @@ class PustahaController extends MainController {
     private function assignBook($request)
     {
         $ret = new \stdClass();
-        $ret->pustaha = new Pustaha();
+
+        if(empty($request->id)){
+            $ret->pustaha = new Pustaha();
+        }else{
+            $ret->pustaha = Pustaha::find($request->id);
+        }
+
         $ret->pustaha->pustaha_type = $request->pustaha_type;
-        $ret->pustaha->author = Auth::user()->username;
+        $ret->pustaha->author = Auth::user()->user_id;
         $ret->pustaha->title = $request->title;
         $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->city = $request->city;
@@ -439,14 +516,31 @@ class PustahaController extends MainController {
         $ret->pustaha->editor = $request->editor;
         $ret->pustaha->issue = $request->issue;
         $ret->pustaha->isbn_issn = $request->isbn_issn;
-        $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
-        $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
-        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        if(empty($request->id))
+        {
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
+
+        if(!empty($request->id) && !empty($request->file('file_name_ori'))){
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_request_ori'))){
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_accomodation_ori'))){
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_certification_ori'))){
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
 
         $ret->pustaha_items = new Collection();
         foreach ($request->item_username_display as $key => $item)
@@ -469,9 +563,13 @@ class PustahaController extends MainController {
     private function assignJournal($request)
     {
         $ret = new \stdClass();
-        $ret->pustaha = new Pustaha();
+        if(empty($request->id)){
+            $ret->pustaha = new Pustaha();
+        }else{
+            $ret->pustaha = Pustaha::find($request->id);
+        }
         $ret->pustaha->pustaha_type = $request->pustaha_type;
-        $ret->pustaha->author = Auth::user()->username;
+        $ret->pustaha->author = Auth::user()->user_id;
         $ret->pustaha->title = $request->title;
         $ret->pustaha->name = $request->name;
         $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
@@ -480,14 +578,32 @@ class PustahaController extends MainController {
         $ret->pustaha->issue = $request->issue;
         $ret->pustaha->isbn_issn = $request->isbn_issn;
         $ret->pustaha->url_address = $request->url_address;
-        $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
-        $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
-        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+
+        if(empty($request->id))
+        {
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
+
+        if(!empty($request->id) && !empty($request->file('file_name_ori'))){
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_request_ori'))){
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_accomodation_ori'))){
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_certification_ori'))){
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
 
         $ret->pustaha_items = new Collection();
         foreach ($request->item_username_display as $key => $item)
@@ -510,9 +626,15 @@ class PustahaController extends MainController {
     private function assignProceeding($request)
     {
         $ret = new \stdClass();
-        $ret->pustaha = new Pustaha();
+
+        if(empty($request->id)){
+            $ret->pustaha = new Pustaha();
+        }else{
+            $ret->pustaha = Pustaha::find($request->id);
+        }
+
         $ret->pustaha->pustaha_type = $request->pustaha_type;
-        $ret->pustaha->author = Auth::user()->username;
+        $ret->pustaha->author = Auth::user()->user_id;
         $ret->pustaha->publisher = $request->publisher;
         $ret->pustaha->title = $request->title;
         $ret->pustaha->name = $request->name;
@@ -522,14 +644,32 @@ class PustahaController extends MainController {
         $ret->pustaha->pages = $request->pages;
         $ret->pustaha->isbn_issn = $request->isbn_issn;
         $ret->pustaha->url_address = $request->url_address;
-        $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
-        $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
-        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+
+        if(empty($request->id))
+        {
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
+
+        if(!empty($request->id) && !empty($request->file('file_name_ori'))){
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_request_ori'))){
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_accomodation_ori'))){
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_certification_ori'))){
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
 
         $ret->pustaha_items = new Collection();
         foreach ($request->item_username_display as $key => $item)
@@ -552,9 +692,13 @@ class PustahaController extends MainController {
     private function assignHki($request)
     {
         $ret = new \stdClass();
-        $ret->pustaha = new Pustaha();
+        if(empty($request->id)){
+            $ret->pustaha = new Pustaha();
+        }else{
+            $ret->pustaha = Pustaha::find($request->id);
+        }
         $ret->pustaha->pustaha_type = $request->pustaha_type;
-        $ret->pustaha->author = Auth::user()->username;
+        $ret->pustaha->author = Auth::user()->user_id;
         $ret->pustaha->propose_no = $request->propose_no;
         $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->creator_name = $request->creator_name;
@@ -569,14 +713,32 @@ class PustahaController extends MainController {
         $ret->pustaha->announcement_place = $request->announcement_place;
         $ret->pustaha->protection_period = $request->protection_period;
         $ret->pustaha->registration_no = $request->registration_no;
-        $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
-        $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
-        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+
+        if(empty($request->id))
+        {
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
+
+        if(!empty($request->id) && !empty($request->file('file_name_ori'))){
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_request_ori'))){
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_accomodation_ori'))){
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_certification_ori'))){
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
 
         return $ret;
     }
@@ -584,9 +746,13 @@ class PustahaController extends MainController {
     private function assignPatent($request)
     {
         $ret = new \stdClass();
-        $ret->pustaha = new Pustaha();
+        if(empty($request->id)){
+            $ret->pustaha = new Pustaha();
+        }else{
+            $ret->pustaha = Pustaha::find($request->id);
+        }
         $ret->pustaha->pustaha_type = $request->pustaha_type;
-        $ret->pustaha->author = Auth::user()->username;
+        $ret->pustaha->author = Auth::user()->user_id;
         $ret->pustaha->propose_no = $request->propose_no;
         $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->creator_name = $request->creator_name;
@@ -601,14 +767,32 @@ class PustahaController extends MainController {
         $ret->pustaha->announcement_place = $request->announcement_place;
         $ret->pustaha->protection_period = $request->protection_period;
         $ret->pustaha->registration_no = $request->registration_no;
-        $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
-        $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
-        $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
-        $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
-        $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+
+        if(empty($request->id))
+        {
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
+
+        if(!empty($request->id) && !empty($request->file('file_name_ori'))){
+            $ret->pustaha->file_name_ori = $request->file('file_name_ori')->getClientOriginalName();
+            $ret->pustaha->file_name = sha1(bcrypt($ret->pustaha->file_name_ori)) . '.' . $request->file('file_name_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_request_ori'))){
+            $ret->pustaha->file_claim_request_ori = $request->file('file_claim_request_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_request = sha1(bcrypt($ret->pustaha->file_claim_request_ori)) . '.' . $request->file('file_claim_request_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_claim_accomodation_ori'))){
+            $ret->pustaha->file_claim_accomodation_ori = $request->file('file_claim_accomodation_ori')->getClientOriginalName();
+            $ret->pustaha->file_claim_accomodation = sha1(bcrypt($ret->pustaha->file_claim_accomodation_ori)) . '.' . $request->file('file_claim_accomodation_ori')->getClientOriginalExtension();
+        }else if(!empty($request->id) && !empty($request->file('file_certification_ori'))){
+            $ret->pustaha->file_certification_ori = $request->file('file_certification_ori')->getClientOriginalName();
+            $ret->pustaha->file_certification = sha1(bcrypt($ret->pustaha->file_certification_ori)) . '.' . $request->file('file_certification_ori')->getClientOriginalExtension();
+        }
 
         return $ret;
     }

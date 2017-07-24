@@ -4,24 +4,26 @@
     $olds = session()->getOldInput();
 
     if(!isset($pustaha)){
-        $pustaha = new \App\Pustaha();
+        $approval = new \App\Approval();
     }
-    if(!isset($pustaha_items)){
-        $pustaha_items = new \Illuminate\Support\Collection();
+
+    foreach ($olds as $key => $old){
+        if($key !== '_token'){
+            $approval[$key] = old($key);
+        }
     }
 @endphp
 
 @section('content')
     <!-- START @PAGE CONTENT -->
     <section id="page-content">
-
         <!-- Start page header -->
         <div id="tour-11" class="header-content">
             <h2><i class="fa fa-cloud-upload"></i>Approve Pustaha</h2>
             <div class="breadcrumb-wrapper hidden-xs">
                 <span class="label">Direktori Anda:</span>
                 <ol class="breadcrumb">
-                    <li class="active">Approve Pustaha > Tambah</li>
+                    <li class="active">Approve Pustaha > Approve</li>
                 </ol>
             </div>
         </div><!-- /.header-content -->
@@ -91,29 +93,94 @@
                             @include('pustaha.hki-detail')
 
                             @include('pustaha.patent-detail')
+                        </div><!-- /.panel -->
+                    </div>
+                    <div class="panel rounded shadow">
+                        <div class="panel-heading">
+                            <div class="pull-left">
+                                <h3 class="panel-title">Approval Action</h3>
+                            </div>
+                            <div class="pull-right">
+                                <button class="btn btn-sm" data-action="collapse" data-container="body"
+                                        data-toggle="tooltip"
+                                        data-placement="top" data-title="Collapse"><i class="fa fa-angle-up"></i>
+                                </button>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div><!-- /.panel-heading -->
 
+                        <div id="approval" class="panel-body">
                             <form action="{{url($action_url)}}" method="post" enctype="multipart/form-data">
-                                @if($upd_mode == 'edit')
-                                    <input type="hidden" name="_method" value="PUT">
-                                @endif
                                 {{csrf_field()}}
+                                <input name="type" type="hidden" value="{{$type}}">
+                                <input name="pustaha_id" type="hidden" value="{{$pustaha['id']}}">
+                                <div class="form-group {{$errors->has('incentive_id') ? 'has-error' : null}}">
+                                    <label for="id_incentive" class="control-label">Pilih Incentive</label>
+                                    <select name="id_incentive" class="form-control select2" style="width: 100%;" {{$disabled_approv}} required>
+                                        <option value="" disabled selected>-- Pilih Incentive --</option>
+                                        @foreach($incentive_ids as $incentive_id)
+                                            <option value="{{$incentive_id['id']}}">
+                                                    {{$incentive_id['description']}}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @if($errors->has('incentive_id'))
+                                        <label class="error" style="display: inline-block;">
+                                            {{$errors->first('incentive_id')}}
+                                        </label>
+                                    @endif
+                                </div>
 
+                                <div class="form-group {{$errors->has('annotation') ? 'has-error' : null}}" >
+                                    <label for="annotation" class="control-label">Approve Annotation</label>
+                                    <textarea name="annotation" class="form-control"
+                                              placeholder="Approve Annotation" {{$disabled_approv}} required></textarea>
+                                    @if($errors->has('annotation'))
+                                        <label class="error" style="display: inline-block;">
+                                            {{$errors->first('annotation')}}
+                                        </label>
+                                    @endif
+                                </div>
+                                <div class="form-group {{$errors->has('approve_status') ? 'has-error' : null}}">
+                                    <label for="name-survey" class="control-label">Approve Status </label>
+                                        <div>
+                                            <div class='rdio radio-inline rdio-theme rounded'>
+                                                @if($type == 'wr3')
+                                                    <input type='radio' class='radio-inline' id='approve_status1' {{$disabled_approv}} required  value='AC:WR3' name="approve_status">
+                                                    @elseif($type == 'lp')
+                                                    <input type='radio' class='radio-inline' id='approve_status1' {{$disabled_approv}} required  value='AC:LP' name="approve_status">
+                                                @endif
+                                                <label class='control-label' for='approve_status1'>Accepted</label>
+                                            </div>
+                                            <div class='rdio radio-inline rdio-theme rounded'>
+                                                @if($type == 'wr3')
+                                                    <input type='radio' class='radio-inline' id='approve_status2' {{$disabled_approv}} required  value='RJ:WR3' name="approve_status">
+                                                @elseif($type == 'lp')
+                                                    <input type='radio' class='radio-inline' id='approve_status2' {{$disabled_approv}} required  value='RJ:LP' name="approve_status">
+                                                @endif
+                                                <label class='control-label' for='approve_status2'>Rejected</label>
+                                            </div>
+                                        </div>
+                                        @if($errors->has('approve_status'))
+                                            <label class="error" style="display: inline-block;">
+                                                {{$errors->first('approve_status')}}
+                                            </label>
+                                        @endif
+                                </div>
+                                
                                 <div class="panel-footer">
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                @if($disabled == null)
-                                                    <button id="pustaha-submit" class="btn btn-success rounded"
-                                                            type="submit">Submit
-                                                    </button>
-                                                @endif
-                                                <a href="{{url('/')}}" class="btn btn-danger rounded">Batal</a>
+                                                <button id="approval-submit" class="btn btn-success rounded" type="submit">Submit
+                                                </button>
+                                                <a href="{{url('/approvals')}}" class="btn btn-danger rounded">Batal</a>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </form>
-                        </div><!-- /.panel -->
+                        </div>
                     </div><!-- /.body-content -->
                 </div><!-- /.col-md-12 -->
             </div><!-- /.row -->

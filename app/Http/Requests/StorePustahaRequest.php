@@ -24,7 +24,7 @@ class StorePustahaRequest extends FormRequest {
     {
         if ($this->input('pustaha_type') == 'BUKU')
         {
-            return [
+            $rules = [
                 'title'                       => 'required',
                 'pustaha_date'                => 'required',
                 'city'                        => 'required|max:100',
@@ -33,14 +33,10 @@ class StorePustahaRequest extends FormRequest {
                 'editor'                      => 'required|max:191',
                 'issue'                       => 'required|max:191',
                 'isbn_issn'                   => 'required|max:191',
-                'file_name_ori'               => 'required|mimetypes:application/pdf',
-                'file_claim_request_ori'      => 'required|mimetypes:application/pdf',
-                'file_claim_accomodation_ori' => 'required|mimetypes:application/pdf',
-                'file_certification_ori'      => 'required|mimetypes:application/pdf',
             ];
         } elseif ($this->input('pustaha_type') == 'JURNAL-N' || $this->input('pustaha_type') == 'JURNAL-I')
         {
-            return [
+            $rules = [
                 'title'                       => 'required',
                 'name'                        => 'required',
                 'pustaha_date'                => 'required',
@@ -49,14 +45,10 @@ class StorePustahaRequest extends FormRequest {
                 'issue'                       => 'required|max:191',
                 'isbn_issn'                   => 'required|max:191',
                 'url_address'                 => 'required|max:191',
-                'file_name_ori'               => 'required|mimetypes:application/pdf',
-                'file_claim_request_ori'      => 'required|mimetypes:application/pdf',
-                'file_claim_accomodation_ori' => 'required|mimetypes:application/pdf',
-                'file_certification_ori'      => 'required|mimetypes:application/pdf',
             ];
         } elseif ($this->input('pustaha_type') == 'PROSIDING')
         {
-            return [
+            $rules = [
                 'publisher'                   => 'required|max:191',
                 'title'                       => 'required',
                 'name'                        => 'required',
@@ -66,14 +58,10 @@ class StorePustahaRequest extends FormRequest {
                 'pages'                       => 'required|integer|max:99999',
                 'isbn_issn'                   => 'required|max:191',
                 'url_address'                 => 'required|max:191',
-                'file_name_ori'               => 'required|mimetypes:application/pdf',
-                'file_claim_request_ori'      => 'required|mimetypes:application/pdf',
-                'file_claim_accomodation_ori' => 'required|mimetypes:application/pdf',
-                'file_certification_ori'      => 'required|mimetypes:application/pdf',
             ];
         } elseif ($this->input('pustaha_type') == 'HKI' || $this->input('pustaha_type') == 'PATEN')
         {
-            return [
+            $rules = [
                 'propose_no'                  => 'required|max:191',
                 'pustaha_date'                => 'required',
                 'creator_name'                => 'required|max:191',
@@ -88,12 +76,15 @@ class StorePustahaRequest extends FormRequest {
                 'announcement_place'          => 'required|max:191',
                 'protection_period'           => 'required|max:191',
                 'registration_no'             => 'required|max:191',
-                'file_name_ori'               => 'required|mimetypes:application/pdf',
-                'file_claim_request_ori'      => 'required|mimetypes:application/pdf',
-                'file_claim_accomodation_ori' => 'required|mimetypes:application/pdf',
-                'file_certification_ori'      => 'required|mimetypes:application/pdf',
             ];
         }
+        if(!$this->input('_method')){
+            $rules = array_add($rules, 'file_name_ori', 'required|mimetypes:application/pdf');
+            $rules = array_add($rules, 'file_claim_request_ori', 'required|mimetypes:application/pdf');
+            $rules = array_add($rules, 'file_claim_accomodation_ori', 'required|mimetypes:application/pdf');
+            $rules = array_add($rules, 'file_certification_ori', 'required|mimetypes:application/pdf');
+        }
+        return $rules;
     }
 
     protected function getValidatorInstance()

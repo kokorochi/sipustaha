@@ -1,5 +1,13 @@
 <div class="form-group {{$errors->has($passing_variable) ? 'has-error' : null}}">
-    <label for="{{$passing_variable}}" class="control-label">{{$passing_description}}</label>
+
+    @if($upd_mode == 'edit')
+        <label for="{{$passing_variable}}" class="control-label">{{$passing_description}}
+            <label class="text-danger"> Kosongkan jika file tidak diupdate</label>
+        </label>
+    @else
+        <label for="{{$passing_variable}}" class="control-label">{{$passing_description}}</label>
+    @endif
+
     <div class="clearfix"></div>
     @if($disabled == null)
         <input name="{{$passing_variable}}" id="fileinput-upload" type="file" class="file">

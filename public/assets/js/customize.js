@@ -15,11 +15,11 @@ $(document).ready(function () {
                     orderable: false,
                     defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Display"><button class="btn btn-theme btn-sm rounded display"><i class="fa fa-eye" style="color:white;"></i></button></a>' +
                     '<a data-toggle="tooltip" data-placement="top" data-original-title="Delete"><button class="btn btn-danger btn-sm rounded delete" data-toggle="modal" data-target="#delete"><i class="fa fa-times"></i></button></a>',
-                    targets: 6
+                    targets: 7
                 },
                 {
                     className: "dt-center",
-                    targets: [1, 4, 5, 6]
+                    targets: [1, 4, 5, 6, 7]
                 },
                 {
                     width: "5%",
@@ -35,7 +35,7 @@ $(document).ready(function () {
         $(document).on("click", "#pustaha-list a button.delete", function (e) {
             e.preventDefault();
             var dt_row = $(this).closest("li").data("dt-row");
-
+            
             if (dt_row >= 0) {
                 var position = dt_row;
             } else {
@@ -65,6 +65,75 @@ $(document).ready(function () {
         });
     }
 
+    if ($("#approval-pustaha-list").length) {
+        var auths = $('#auths').val();
+        var apprv = "";
+
+        var wr3 = '<a class="btn btn-theme btn-sm rounded appwr3" data-toggle="tooltip" data-placement="top" title="Approval WR3">Approval</a>';
+        var lp = '<a class="btn btn-danger btn-sm rounded applp" data-toggle="tooltip" data-placement="top" title="Approval LP">Approval</a>';
+        if(auths=='SU'){
+            var apprv = wr3 + lp;
+        }else if(auths=='OWR3'){
+            var apprv = wr3;
+        }else if(auths=='OPEL'){
+            var apprv = lp;
+        }
+        var pustahaDatatable = $("#approval-pustaha-list").dataTable({
+            autoWidth: false,
+            responsive: true,
+            ajax: baseUrl + 'approvals/ajax',
+            columnDefs: [
+                {
+                    orderable: false,
+                    defaultContent: apprv,
+                    targets: 8
+                },
+                {
+                    className: "dt-center",
+                    targets: [1, 4, 5, 6, 7, 8]
+                },
+                {
+                    width: "5%",
+                    targets: 1,
+                },
+                {
+                    visible: false,
+                    targets: 0,
+                }
+            ],
+        });
+
+        $(document).on("click", "#approval-pustaha-list a.appwr3", function (e) {
+            e.preventDefault();
+            var dt_row = $(this).closest("li").data("dt-row");
+
+            if (dt_row >= 0) {
+                var position = dt_row;
+            } else {
+                var target_row = $(this).closest("tr").get(0);
+                var position = pustahaDatatable.fnGetPosition(target_row);
+            }
+            var id = pustahaDatatable.fnGetData(position)[0];
+
+            window.open(baseUrl + "approvals/detail?id=" + id + "&type=wr3", "_self");
+        });
+
+        $(document).on("click", "#approval-pustaha-list a.applp", function (e) {
+            e.preventDefault();
+            var dt_row = $(this).closest("li").data("dt-row");
+
+            if (dt_row >= 0) {
+                var position = dt_row;
+            } else {
+                var target_row = $(this).closest("tr").get(0);
+                var position = pustahaDatatable.fnGetPosition(target_row);
+            }
+            var id = pustahaDatatable.fnGetData(position)[0];
+
+            window.open(baseUrl + "approvals/detail?id=" + id + "&type=lp", "_self");
+        });
+    }
+
     if ($("#user-list").length) {
         var userDatatable = $("#user-list").dataTable({
             autoWidth: false,
@@ -73,7 +142,7 @@ $(document).ready(function () {
             columnDefs: [
                 {
                     orderable: false,
-                    defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Edit"><button class="btn btn-theme btn-sm rounded edit"><i class="fa fa-pencil" style="color:white;"></i></button></a>' +
+                    defaultContent: '<a class="btn btn-theme btn-sm rounded edit" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fa fa-pencil" style="color:white;"></i></a>' +
                     '<a data-toggle="tooltip" data-placement="top" data-original-title="Delete"><button class="btn btn-danger btn-sm rounded delete" data-toggle="modal" data-target="#delete"><i class="fa fa-times"></i></button></a>',
                     targets: 4
                 },

@@ -18,4 +18,9 @@ class Approval extends Model
     {
         return $this->belongsTo(Pustaha::class);
     }
+
+    public function statusCode()
+    {
+        return $this->belongsTo(StatusCode::class, 'approval_status', 'code');
+    }
 }

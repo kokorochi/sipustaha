@@ -1,0 +1,12 @@
+step command to clone project from github:
+
+1. git clone 'url -github'
+2. dwnload file .env
+3. composer update
+4. php artisan migrate
+5. php artisan db:seed --class=DatabaseSeeder
+
+step command pull
+1. git checkout .
+1. git remote update
+2. git pull
