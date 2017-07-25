@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use parinpan\fanjwt\libs\JWTAuth;
 use View;
 
 class ApprovalController extends MainController {
