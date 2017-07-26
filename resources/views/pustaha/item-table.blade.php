@@ -2,7 +2,7 @@
     <div class="form-group">
         <label for="author" class="control-label">Penulis Selanjutnya / Co-Author</label>
         <div class="clearfix"></div>
-        <a href="#" class="btn btn-theme btn-md rounded table-add" title="Tambah"><i class="fa fa-plus"></i></a>
+        <a href="#" class="btn btn-theme btn-md rounded table-add" data-toggle="tooltip" title="Tambah Co-Author"><i class="fa fa-plus"></i></a>
     </div>
 @endif
 <div class="form-group table-responsive item-table">

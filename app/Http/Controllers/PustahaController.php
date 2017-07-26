@@ -6,6 +6,7 @@ use App\Approval;
 use App\Http\Requests\StorePustahaRequest;
 use App\Pustaha;
 use App\PustahaItem;
+use App\Research;
 use App\Simsdm;
 use App\User;
 use Illuminate\Http\Request;
@@ -234,6 +235,9 @@ class PustahaController extends MainController {
             }
         }
         $approvales = $pustaha->approval()->get();
+
+//        $res = new Research($pustaha->id);
+
 
         return view('pustaha.pustaha-detail', compact(
             'pustaha',
@@ -795,5 +799,26 @@ class PustahaController extends MainController {
         }
 
         return $ret;
+    }
+
+    public function searchResearch()
+    {
+        $input = Input::get();
+        $res = new Research();
+        $simsdm = new Simsdm();
+        $research = $res->searchResearch($input['query']);
+
+        $results = new Collection();
+        foreach ($research['data'] as $rsc)
+        {
+            $result = new \stdClass();
+            $result->reseach_id = $rsc['id'];
+                $user = $simsdm->getEmployee($rsc['author']);
+            $result->label = 'Author: ' . $user->full_name . ', Judul Penelitian: ' . $rsc['title'];
+            $results->push($result);
+        }
+        $results = json_encode($results, JSON_PRETTY_PRINT);
+
+        return response($results, 200)->header('Content-Type', 'application/json');
     }
 }

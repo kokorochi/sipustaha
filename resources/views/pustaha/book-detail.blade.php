@@ -7,6 +7,20 @@
 
     @include('pustaha.item-table')
 
+    <div class="form-group {{$errors->has('research_id') ? 'has-error' : null}}">
+        <label for="research_id" class="control-label">Judul Penelitian</label>
+        <input name="research_full" type="text" class="form-control search-research">
+        <input name="research_id" type="text" id="research_id">
+        @if($errors->has('research_id'))
+            <label class="error" style="display: inline-block;">
+                {{$errors->first('research_id')}}
+            </label>
+        @endif
+    </div>
+    {{--<input name="research_full" type="text" class="form-control search-research"--}}
+           {{--value="{{$research['research_full']}}">--}}
+    {{--<input name="research_id" type="hidden" value="{{$research['research_id']}}">--}}
+
     @include('layout.input-textarea', ['passing_variable' => 'title', 'passing_description' => 'Judul'])
     @include('layout.input-date', ['passing_variable' => 'pustaha_date', 'passing_description' => 'Tahun Terbit'])
     @include('layout.input-text', ['passing_variable' => 'city', 'passing_description' => 'Kota'])

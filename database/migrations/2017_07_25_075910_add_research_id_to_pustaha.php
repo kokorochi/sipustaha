@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddIdIncentiveToApprovals extends Migration
+class AddResearchIdToPustaha extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddIdIncentiveToApprovals extends Migration
      */
     public function up()
     {
-        Schema::table('approvals', function (Blueprint $table) {
-            $table->integer('id_incentive')->after('approval_annotation')->nullable();
+        Schema::table('pustahas', function (Blueprint $table) {
+            $table->string('research_id')->after('author')->nullable();
         });
     }
 
@@ -25,8 +25,8 @@ class AddIdIncentiveToApprovals extends Migration
      */
     public function down()
     {
-        Schema::table('approvals', function (Blueprint $table) {
-            $table->dropColumn('id_incentive');
+        Schema::table('pustahas', function (Blueprint $table) {
+            $table->dropColumn('research_id');
         });
     }
 }

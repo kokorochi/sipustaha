@@ -23,7 +23,7 @@ class IsAuth {
             $user = new User();
             $user->username = env('LOGIN_USERNAME');
             $user->user_id = env('LOGIN_ID');
-//            dd($user);
+
             Auth::login($user);
 
             return $next($request);

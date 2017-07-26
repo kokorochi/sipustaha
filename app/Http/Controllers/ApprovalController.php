@@ -227,7 +227,7 @@ class ApprovalController extends MainController {
         $approval->item = $last_item->item + 1; // find last item where pustaha_id X and plus 1
         $approval->approval_status = $request->approve_status;
         $approval->approval_annotation = $request->annotation;
-        $approval->id_incentive = $request->id_incentive;
+        $approval->incentive_id = $request->incentive_id;
         $approval->created_by = Auth::user()->user_id;
 
         DB::transaction(function () use ($approval, $request)
