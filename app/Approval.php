@@ -23,4 +23,9 @@ class Approval extends Model
     {
         return $this->belongsTo(StatusCode::class, 'approval_status', 'code');
     }
+
+    public function incentive()
+    {
+        return $this->belongsTo(Incentive::class, 'incentive_id', 'id');
+     }
 }

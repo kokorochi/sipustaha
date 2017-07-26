@@ -395,10 +395,39 @@ $(document).ready(function () {
         }
     };
 
+    var autocomp_res = {
+        source: function (request, response) {
+            $.ajax({
+                url: baseUrl + 'pustahas/search-research',
+                dataType: "json",
+                data: {
+                    query: request.term
+                },
+                success: function (data) {
+                    var transformed = $.map(data, function (el) {
+
+                        return {
+                            label: el.label,
+                            id: el.research_id
+                        };
+                        $('#research_id').val(el.research_id);
+                    });
+                    response(transformed);
+                }
+            });
+        }
+    };
+
     if ($(".search-employee").length) {
         $(".search-employee:enabled").autocomplete(autocomp_opt);
     }
 
+    // $(document).on("change","keyup", "input[name^=research_full]", function () {
+    //     $(".search-research:enabled").autocomplete(autocomp_res);
+    // });
+    if ($(".search-research").length) {
+        $(".search-research:enabled").autocomplete(autocomp_res);
+    }
 
     $('.table-add').click(function (e) {
         e.preventDefault();

@@ -115,8 +115,8 @@
                                 <input name="type" type="hidden" value="{{$type}}">
                                 <input name="pustaha_id" type="hidden" value="{{$pustaha['id']}}">
                                 <div class="form-group {{$errors->has('incentive_id') ? 'has-error' : null}}">
-                                    <label for="id_incentive" class="control-label">Pilih Incentive</label>
-                                    <select name="id_incentive" class="form-control select2" style="width: 100%;" {{$disabled_approv}} required>
+                                    <label for="incentive_id" class="control-label">Pilih Incentive</label>
+                                    <select name="incentive_id" class="form-control select2" style="width: 100%;" {{$disabled_approv}} required>
                                         <option value="" disabled selected>-- Pilih Incentive --</option>
                                         @foreach($incentive_ids as $incentive_id)
                                             <option value="{{$incentive_id['id']}}">

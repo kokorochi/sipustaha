@@ -21,6 +21,7 @@ Route::put('pustahas/edit', 'PustahaController@update');
 Route::delete('pustahas/delete', 'PustahaController@destroy');
 Route::get('pustahas/download-document', 'PustahaController@downloadDocument');
 Route::get('pustahas/ajax', 'PustahaController@getAjax');
+Route::get('pustahas/search-research', 'PustahaController@searchResearch');
 
 Route::get('approvals', 'ApprovalController@index');
 Route::get('approvals/detail', 'ApprovalController@showApproval');
