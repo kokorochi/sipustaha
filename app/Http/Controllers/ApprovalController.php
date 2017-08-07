@@ -53,7 +53,7 @@ class ApprovalController extends MainController {
             $login = new \stdClass();
             $login->logged_in = true;
             $login->payload = new \stdClass();
-            $login->payload->identity = env('LOGIN_USERNAME'); // nampung nip
+            $login->payload->identity = env('LOGIN_USERNAME');
             $login->payload->user_id = env('LOGIN_ID');
         } else
         {
@@ -114,7 +114,6 @@ class ApprovalController extends MainController {
         }
 
         $greater_item = $pustaha->approval()->where('item','>',$var_item)->where('approval_status', 'like', '%'.$type)->orderBy('item', 'desc')->first();
-//        dd($greater_item);
 
         $disabled_approv = null;
         if(!empty($greater_item)){
@@ -224,7 +223,7 @@ class ApprovalController extends MainController {
         $last_item = Approval::where('pustaha_id',$request->pustaha_id)->orderBy('id', 'desc')->first();
         $approval = new Approval();
         $approval->pustaha_id =  $request->pustaha_id;
-        $approval->item = $last_item->item + 1; // find last item where pustaha_id X and plus 1
+        $approval->item = $last_item->item + 1;
         $approval->approval_status = $request->approve_status;
         $approval->approval_annotation = $request->annotation;
         $approval->incentive_id = $request->incentive_id;
@@ -251,7 +250,7 @@ class ApprovalController extends MainController {
         return redirect()->intended('/approvals');
     }
 
-     public function getAjax()
+    public function getAjax()
     {
         $pustahas = Pustaha::all();
 

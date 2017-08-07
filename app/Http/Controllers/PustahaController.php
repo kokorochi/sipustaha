@@ -56,7 +56,7 @@ class PustahaController extends MainController {
             $login = new \stdClass();
             $login->logged_in = true;
             $login->payload = new \stdClass();
-            $login->payload->identity = env('LOGIN_USERNAME'); // nampung nip
+            $login->payload->identity = env('LOGIN_USERNAME');
             $login->payload->user_id = env('LOGIN_ID');
         } else
         {
@@ -121,7 +121,9 @@ class PustahaController extends MainController {
         $disabled = '';
 
         $pustaha = new Pustaha();
+
         $pustaha->author = $this->user_info['username'];
+        $pustaha->research_full = null;
 
         $pustaha_items = new Collection();
         $pustaha_item = new PustahaItem();
@@ -163,8 +165,8 @@ class PustahaController extends MainController {
         }
 
         $var_pustaha->approval = new Approval();
-        $var_pustaha->approval->item = 1; // find last item where pustaha_id X and plus 1
-        $var_pustaha->approval->approval_status = 'SB'; //Submit
+        $var_pustaha->approval->item = 1;
+        $var_pustaha->approval->approval_status = 'SB';
         $var_pustaha->approval->approval_annotation = 'Submitted';
         $var_pustaha->approval->created_by = Auth::user()->user_id;
 
@@ -235,9 +237,10 @@ class PustahaController extends MainController {
             }
         }
         $approvales = $pustaha->approval()->get();
-
-//        $res = new Research($pustaha->id);
-
+        $res = new Research();
+        $research = $res->getResearchById($pustaha->research_id);
+        $full_name = $this->simsdm->getEmployee($research->author)->full_name;
+        $pustaha->research_full = 'Author: ' . $full_name . ', Judul Penelitian: ' . $research->title;
 
         return view('pustaha.pustaha-detail', compact(
             'pustaha',
@@ -246,7 +249,8 @@ class PustahaController extends MainController {
             'upd_mode',
             'action_url',
             'page_title',
-            'disabled'
+            'disabled',
+            'research'
         ));
     }
 
@@ -292,6 +296,11 @@ class PustahaController extends MainController {
             }
         }
         $approvales = $pustaha->approval()->get();
+        
+        $res = new Research();
+        $research = $res->getResearchById($pustaha->research_id);
+        $full_name = $this->simsdm->getEmployee($research->author)->full_name;
+        $pustaha->research_full = 'Author: ' . $full_name . ', Judul Penelitian: ' . $research->title;
 
         return view('pustaha.pustaha-detail', compact(
             'pustaha',
@@ -306,8 +315,6 @@ class PustahaController extends MainController {
 
     public function update(StorePustahaRequest $request)
     {
-        // note : check all assign is update or create, if create is new || update is find. and db : transaction delete all pustaha items before save
-
         if ($request->pustaha_type == 'BUKU')
         {
             $path = 'book';
@@ -335,7 +342,7 @@ class PustahaController extends MainController {
 
         $var_pustaha->approval = new Approval();
         $var_pustaha->approval->item = $last_item->item + 1;
-        $var_pustaha->approval->approval_status = 'UP'; //Updateda
+        $var_pustaha->approval->approval_status = 'UP';
         $var_pustaha->approval->approval_annotation = 'Updated';
         $var_pustaha->approval->created_by = Auth::user()->user_id;
 
@@ -512,6 +519,7 @@ class PustahaController extends MainController {
 
         $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->user_id;
+        $ret->pustaha->research_id = $request->research_id;
         $ret->pustaha->title = $request->title;
         $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->city = $request->city;
@@ -574,6 +582,7 @@ class PustahaController extends MainController {
         }
         $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->user_id;
+        $ret->pustaha->research_id = $request->research_id;
         $ret->pustaha->title = $request->title;
         $ret->pustaha->name = $request->name;
         $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
@@ -639,6 +648,7 @@ class PustahaController extends MainController {
 
         $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->user_id;
+        $ret->pustaha->research_id = $request->research_id;
         $ret->pustaha->publisher = $request->publisher;
         $ret->pustaha->title = $request->title;
         $ret->pustaha->name = $request->name;
@@ -703,6 +713,7 @@ class PustahaController extends MainController {
         }
         $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->user_id;
+        $ret->pustaha->research_id = $request->research_id;
         $ret->pustaha->propose_no = $request->propose_no;
         $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->creator_name = $request->creator_name;
@@ -757,6 +768,7 @@ class PustahaController extends MainController {
         }
         $ret->pustaha->pustaha_type = $request->pustaha_type;
         $ret->pustaha->author = Auth::user()->user_id;
+        $ret->pustaha->research_id = $request->research_id;
         $ret->pustaha->propose_no = $request->propose_no;
         $ret->pustaha->pustaha_date = date('Y-m-d', strtotime($request->pustaha_date));
         $ret->pustaha->creator_name = $request->creator_name;
@@ -806,15 +818,15 @@ class PustahaController extends MainController {
         $input = Input::get();
         $res = new Research();
         $simsdm = new Simsdm();
-        $research = $res->searchResearch($input['query']);
+        $research = $res->searchResearchTitle($input['query']);
 
         $results = new Collection();
-        foreach ($research['data'] as $rsc)
+        foreach ($research->data as $rsc)
         {
             $result = new \stdClass();
-            $result->reseach_id = $rsc['id'];
-                $user = $simsdm->getEmployee($rsc['author']);
-            $result->label = 'Author: ' . $user->full_name . ', Judul Penelitian: ' . $rsc['title'];
+            $result->research_id = $rsc->id;
+                $user = $simsdm->getEmployee($rsc->author);
+            $result->label = 'Author: ' . $user->full_name . ', Judul Penelitian: ' . $rsc->title;
             $results->push($result);
         }
         $results = json_encode($results, JSON_PRETTY_PRINT);

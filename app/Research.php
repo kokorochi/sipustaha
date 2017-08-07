@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Research extends Model
+class Research
 {
     protected $client;
 
@@ -13,11 +13,19 @@ class Research extends Model
         $this->client = new \GuzzleHttp\Client();
     }
 
-    public function searchResearch($input)
+    public function searchResearchTitle($input)
     {
-        $response = file_get_contents('https://simpel.usu.ac.id/researches/search?title=' . $input);
-        $json = json_decode($response, true);
+        $response = $this->client->get('https://simpel.usu.ac.id/researches/search?title=' . $input);
+        $json = json_decode($response->getBody());
 
         return $json;
+    }
+
+    public function getResearchById($input)
+    {
+        $response = $this->client->get('https://simpel.usu.ac.id/researches/search?id=' . $input);
+        $json = json_decode($response->getBody());
+
+        return $json->data[0];
     }
 }

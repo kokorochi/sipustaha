@@ -49,7 +49,6 @@ class StoreApprovalRequest extends FormRequest
 
         $incentive = Incentive::where('id', $this->input('id_incentive'))->get();
 
-        // dd($coop_partner);
         if ($incentive->isEmpty())
         {
             $ret[] = 'Incentive tidak terdapat pada tabel incentive';

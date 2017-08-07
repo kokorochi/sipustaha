@@ -95,7 +95,6 @@ class StorePustahaRequest extends FormRequest {
         });
     }
 
-
     public function after($validator)
     {
         $check = $this->checkBeforeSave();
@@ -111,7 +110,7 @@ class StorePustahaRequest extends FormRequest {
     private function checkBeforeSave()
     {
         $ret = [];
-
+     
         if ($this->input('pustaha_type') == 'BUKU' ||
             $this->input('pustaha_type') == 'JURNAL-N' || $this->input('pustaha_type') == 'JURNAL-I' ||
             $this->input('pustaha_type') == 'PROSIDING'

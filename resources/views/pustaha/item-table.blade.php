@@ -5,7 +5,7 @@
         <a href="#" class="btn btn-theme btn-md rounded table-add" data-toggle="tooltip" title="Tambah Co-Author"><i class="fa fa-plus"></i></a>
     </div>
 @endif
-<div class="form-group table-responsive item-table">
+<div class="form-group table-responsive item-table" id="item-table">
     <table class="table">
         <thead>
         <th class="text-center">Dosen Luar</th>

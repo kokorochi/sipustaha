@@ -29,6 +29,14 @@ Route::post('approvals/create', 'ApprovalController@store');
 Route::get('approvals/ajax', 'ApprovalController@getAjax');
 Route::get('approvals/download-document', 'ApprovalController@downloadDocument');
 
+Route::get('users/', 'UserController@index');
+Route::get('users/create', 'UserController@create');
+Route::post('users/create', 'UserController@store');
+Route::post('users/delete', 'UserController@destroy');
+Route::get('users/ajax', 'UserController@getAjax');
+Route::delete('users/delete', 'UserController@destroy');
+Route::get('users/edit', 'UserController@edit');
+Route::put('users/edit', 'UserController@update');
 Route::get('users/ajax/search', 'UserController@searchUser');
 
 Route::get('callback.php', 'CallbackController@callback');

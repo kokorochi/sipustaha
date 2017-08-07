@@ -32,7 +32,6 @@
                 </div><!-- /.panel-heading -->
                 
                 @if(!empty($auths))
-                    {{-- {{dd($auths)}} --}}
                     <input type="hidden" id="auths" value="{{$auths}}">
                     {{csrf_field()}}
                 @endif

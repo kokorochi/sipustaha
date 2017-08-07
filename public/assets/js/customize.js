@@ -13,7 +13,7 @@ $(document).ready(function () {
             columnDefs: [
                 {
                     orderable: false,
-                    defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Display"><button class="btn btn-theme btn-sm rounded display"><i class="fa fa-eye" style="color:white;"></i></button></a>' +
+                    defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Lihat Pertanyaan"><button class="btn btn-primary btn-sm rounded display"><i class="fa fa-eye" style="color:white;"></i></button></a>' +
                     '<a data-toggle="tooltip" data-placement="top" data-original-title="Delete"><button class="btn btn-danger btn-sm rounded delete" data-toggle="modal" data-target="#delete"><i class="fa fa-times"></i></button></a>',
                     targets: 7
                 },
@@ -172,7 +172,7 @@ $(document).ready(function () {
             $("#delete form").attr("action", baseUrl + "users/delete?username=" + username);
         });
 
-        $(document).on("click", "#user-list a button.edit", function (e) {
+        $(document).on("click", "#user-list a.edit", function (e) {
             e.preventDefault();
             var dt_row = $(this).closest("li").data("dt-row");
 
@@ -390,6 +390,8 @@ $(document).ready(function () {
             });
         },
         select: function (event, ui) {
+            $("input[name=full_name]").val(ui.item.full_name);
+            $("input[name=username]").val(ui.item.id);
             $(this).parents("tr").find("input[name^=item_username]").val(ui.item.id);
             $('.search-employee').trigger('change');
         }
@@ -410,11 +412,15 @@ $(document).ready(function () {
                             label: el.label,
                             id: el.research_id
                         };
-                        $('#research_id').val(el.research_id);
                     });
                     response(transformed);
                 }
             });
+        },
+        select: function (event, ui) {
+            console.log(ui);
+            $(this).parents("div").find("input[name=research_id]").val(ui.item.id);
+            $('.search-research').trigger('change');
         }
     };
 
@@ -422,23 +428,33 @@ $(document).ready(function () {
         $(".search-employee:enabled").autocomplete(autocomp_opt);
     }
 
-    // $(document).on("change","keyup", "input[name^=research_full]", function () {
-    //     $(".search-research:enabled").autocomplete(autocomp_res);
-    // });
     if ($(".search-research").length) {
         $(".search-research:enabled").autocomplete(autocomp_res);
     }
 
     $('.table-add').click(function (e) {
         e.preventDefault();
-        var v_table = $(this).parents(".detail-container").find(".item-table");
+        if($("#item-table").length){
+            var v_table = $(this).parents(".detail-container").find(".item-table");
+        }else if($("#user-auth-table").length){
+            var v_table = $("#user-auth-table");
+        }
         var $clone = v_table.find('tr.hide').clone(true).removeClass('hide table-line');
-        $clone.find("input[name^=item_external]").attr("disabled", false);
-        $clone.find("input[name^=item_username]").attr("disabled", false);
-        $clone.find("input[name^=item_name]").attr("disabled", true);
-        $clone.find("input[name^=item_affiliation]").attr("disabled", true);
+        if($("#item-table").length){
+            $clone.find("input[name^=item_external]").attr("disabled", false);
+            $clone.find("input[name^=item_username]").attr("disabled", false);
+            $clone.find("input[name^=item_name]").attr("disabled", true);
+            $clone.find("input[name^=item_affiliation]").attr("disabled", true);
+        }else if($("#user-auth-table").length){
+            $clone.find("select").attr("disabled", false);
+            $clone.find("select").addClass("select2");
+        }
         v_table.find('table').append($clone);
-        $(".search-employee:enabled").autocomplete(autocomp_opt);
+        if($("#item-table").length){
+            $(".search-employee:enabled").autocomplete(autocomp_opt);
+        } else if ($("#user-auth-table").length) {
+            $(".select2").select2();
+        }
     });
 
     $('.table-remove').click(function (e) {
@@ -540,9 +556,6 @@ $(document).ready(function () {
             $.each($("input[name^=item_]:visible:disabled"), function(index, value){
                 $(value).attr('disabled', false);
             });
-            // $.each($("input[name^=item_]:visible"), function(index, value){
-            //     $(value).attr('disabled', false);
-            // });
         }
     });
 });

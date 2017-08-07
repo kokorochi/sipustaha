@@ -11,4 +11,9 @@ class UserAuth extends Model
     protected $fillable = [
         'username', 'auth_type', 'created_by', 'updated_by'
     ];
+
+    public function auths()
+    {
+        return $this->belongsTo(Auths::class, 'auth_type', 'type');
+    }
 }

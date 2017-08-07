@@ -80,11 +80,22 @@
                                 </div>
                             @endif
                             <form action="{{url($action_url)}}" method="post" enctype="multipart/form-data">
-
                                 @if($upd_mode != 'create')
                                     <input name="id" type="hidden" value="{{$pustaha['id']}}">
                                 @endif
                                 <input name="upd_mode" type="hidden" value="{{$upd_mode}}" disabled>
+
+                                <div class="form-group {{$errors->has('research_id') ? 'has-error' : null}}">
+                                    <label for="research_id" class="control-label">Judul Penelitian</label>
+                                    <input name="research_full" type="text" class="form-control search-research" value="{{$pustaha['research_full']}}"
+                                           placeholder="Judul Penelitian" required>
+                                    <input name="research_id" type="hidden" value="{{$pustaha['research_id']}}">
+                                    @if($errors->has('research_id'))
+                                        <label class="error" style="display: inline-block;">
+                                            {{$errors->first('research_id')}}
+                                        </label>
+                                    @endif
+                                </div>
 
                                 <div class="form-group {{$errors->has('pustaha_type') ? 'has-error' : null}}">
                                     <label for="pustaha_type" class="control-label">Jenis Pustaha</label>
