@@ -33,8 +33,15 @@ class AuthServiceProvider extends ServiceProvider
                     ->where('auth_type', 'SU')
                     ->exists()
             );
-//            return (Auths::where('user_id', $user->id)->where('auth_object_ref_id', '1')->exists() ||
-//                Auths::where('user_id', $user->id)->where('auth_object_ref_id', '2')->exists());
+        });
+
+        Gate::define('approval-menu', function ($user)
+        {
+            return (
+                UserAuth::where('username', $user->username)->where(function ($query) {
+                    $query->where('auth_type', 'OPEL')->orWhere('auth_type', 'OWR3')->orWhere('auth_type', 'SU');
+                })->exists()
+            );
         });
     }
 }

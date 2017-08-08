@@ -156,6 +156,7 @@ class ApprovalController extends MainController {
                 $pustaha_item['item_external'] = 'X';
             }
         }
+
         return view('approval.approval-detail', compact(
             'upd_mode',
             'page_title',

@@ -26,24 +26,16 @@
                 {!! Request::is('/', '/') ? '<span class="selected"></span>' : null !!}
             </a>
         </li>
-        {{--<li class="submenu {!! Request::is('cooperations', 'cooperations/soon-ends') ? 'active' : null !!}">--}}
-            {{--<a href="{{url('cooperations/soon-ends')}}">--}}
-                {{--<span class="icon"><i class="fa fa-handshake-o"></i></span>--}}
-                {{--<span class="text">Kerjasama Segera Berakhir</span>--}}
-            {{--</a>--}}
-        {{--</li>--}}
-        {{--<li class="submenu {!! Request::is('partners', 'partners/*', 'units') ? 'active' : null !!}">--}}
-            {{--<a href="javascript:void(0);">--}}
-                {{--<span class="icon"><i class="fa fa-dot-circle-o"></i></span>--}}
-                {{--<span class="text">Data Referensi </span>--}}
-                {{--<span class="arrow"></span>--}}
-                {{--{!! Request::is('partners', 'partners/*', 'units') ? '<span class="selected"></span>' : null !!}--}}
-            {{--</a>--}}
-            {{--<ul>--}}
-                {{--<li><a href="{{url('partners')}}">Instansi Partner</a></li>--}}
-                {{--<li><a href="{{url('units')}}">Unit Kerja</a></li>--}}
-            {{--</ul>--}}
-        {{--</li>--}}
+
+        @can('approval-menu')
+            <li class="submenu {!! Request::is('approvals', 'approvals/*') ? 'active' : null !!}">
+                <a href="{{url('approvals')}}">
+                    <span class="icon"><i class="fa fa-cloud-download"></i></span>
+                    <span class="text">Approvals</span>
+                    {!! Request::is('approvals', 'approvals/*') ? '<span class="selected"></span>' : null !!}
+                </a>
+            </li>
+        @endcan
 
         @can('admin-menu')
             <li class="submenu {!! Request::is('users', 'users/*') ? 'active' : null !!}">
@@ -58,7 +50,6 @@
                 </ul>
             </li>
         @endcan
-
         <!--/ End navigation - dashboard -->
     </ul>
 

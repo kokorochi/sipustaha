@@ -25,7 +25,7 @@ class StoreApprovalRequest extends FormRequest
     public function rules()
     {
         return [
-            'id_incentive' => 'required',
+            'incentive_id' => 'required',
             'annotation' => 'required',
             'approve_status' => 'required',
         ];
