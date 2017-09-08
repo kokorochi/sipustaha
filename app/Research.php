@@ -21,6 +21,14 @@ class Research
         return $json;
     }
 
+    public function searchResearchTitleOwn($input, $own)
+    {
+        $response = $this->client->get('https://simpel.usu.ac.id/researches/search?title=' . $input .'&own='.$own);
+        $json = json_decode($response->getBody());
+
+        return $json;
+    }
+
     public function getResearchById($input)
     {
         $response = $this->client->get('https://simpel.usu.ac.id/researches/search?id=' . $input);

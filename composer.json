@@ -9,7 +9,8 @@
         "guzzlehttp/guzzle": "^6.2",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
-        "parinpan/fan-jwt": "dev-master"
+        "parinpan/fan-jwt": "dev-master",
+        "maatwebsite/excel": "~2.1.21"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

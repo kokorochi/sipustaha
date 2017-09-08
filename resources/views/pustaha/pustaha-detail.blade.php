@@ -30,6 +30,7 @@
         $pustaha_items->push($pustaha_item);
         $ctr++;
     }
+
     if(!isset($pustaha)){
         $pustaha = new \App\Pustaha();
     }

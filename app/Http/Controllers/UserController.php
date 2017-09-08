@@ -17,7 +17,7 @@ class UserController extends MainController {
     public function __construct()
     {
         $this->middleware('is_auth');
-        $this->middleware('is_operator');
+        $this->middleware('is_operator')->except('searchUser');
         parent::__construct();
 
         $this->simsdm = new Simsdm();

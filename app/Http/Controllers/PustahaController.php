@@ -9,7 +9,7 @@ use App\PustahaItem;
 use App\Research;
 use App\Simsdm;
 use App\User;
-use Illuminate\Http\Request;
+use App\UserAuth;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -56,8 +56,10 @@ class PustahaController extends MainController {
             $login = new \stdClass();
             $login->logged_in = true;
             $login->payload = new \stdClass();
-            $login->payload->identity = env('LOGIN_USERNAME');
-            $login->payload->user_id = env('LOGIN_ID');
+//            $login->payload->identity = env('LOGIN_USERNAME');
+//            $login->payload->user_id = env('LOGIN_ID');
+            $login->payload->identity = env('USERNAME_LOGIN');
+            $login->payload->user_id = env('ID_LOGIN');
         } else
         {
             $login = JWTAuth::communicate('https://akun.usu.ac.id/auth/listen', @$_COOKIE['ssotok'], function ($credential)
@@ -75,6 +77,7 @@ class PustahaController extends MainController {
             }
             );
         }
+
         if (! $login)
         {
             $login_link = JWTAuth::makeLink([
@@ -818,14 +821,20 @@ class PustahaController extends MainController {
         $input = Input::get();
         $res = new Research();
         $simsdm = new Simsdm();
-        $research = $res->searchResearchTitle($input['query']);
+        $auths = null;
+        $user_auth = UserAuth::where('username',$this->user_info['username'])->get();
+        if($user_auth->contains('auth_type','SU') || $user_auth->contains('auth_type)','OWR3' || $user_auth->contains('auth_type','OPEL') )){
+            $research = $res->searchResearchTitle($input['query']);
+        }else{
+            $research = $res->searchResearchTitleOwn($input['query'],$this->user_info['username']);
+        }
 
         $results = new Collection();
         foreach ($research->data as $rsc)
         {
             $result = new \stdClass();
             $result->research_id = $rsc->id;
-                $user = $simsdm->getEmployee($rsc->author);
+            $user = $simsdm->getEmployee($rsc->author);
             $result->label = 'Author: ' . $user->full_name . ', Judul Penelitian: ' . $rsc->title;
             $results->push($result);
         }
