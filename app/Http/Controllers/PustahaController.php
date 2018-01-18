@@ -124,8 +124,8 @@ class PustahaController extends MainController {
         $disabled = '';
 
         $pustaha = new Pustaha();
-
-        $pustaha->author = $this->user_info['username'];
+        $simsdm = new Simsdm();
+        $pustaha->author = $simsdm->getEmployee($this->user_info['user_id'])->nidn;
         $pustaha->research_full = null;
 
         $pustaha_items = new Collection();
@@ -227,6 +227,7 @@ class PustahaController extends MainController {
 
         $pustaha_items = $pustaha->pustahaItem()->get();
         $simsdm = new Simsdm();
+
         foreach ($pustaha_items as $pustaha_item)
         {
             if (! empty($pustaha_item['item_username']))
@@ -239,11 +240,33 @@ class PustahaController extends MainController {
                 $pustaha_item['item_external'] = 'X';
             }
         }
-        $approvales = $pustaha->approval()->get();
+        
+        $approval_rj = $pustaha->approval()->orderBy('id', 'DESC')->take(2)->get();
+        if($approval_rj[0]->approval_status=='RJ:WR3' && $approval_rj[1]->approval_status=='RJ:LP'){
+            $edit = true;
+        }elseif($approval_rj[0]->approval_status=='AC:WR3' && $approval_rj[1]->approval_status=='RJ:LP'){
+            $edit = true;
+        }elseif($approval_rj[0]->approval_status=='AC:LP' && $approval_rj[1]->approval_status=='RJ:WR3'){
+            $edit = true;
+        }
+        // dd($pustaha);
+        $approval1 = $pustaha->approval()->get();
+        $approvales = new Collection();
+        foreach ($approval1 as $approv) {
+            $app = new Collection();
+            $status = $approv->statusCode()->first();
+            $app->code = $approv->approval_status;
+            $app->approval_annotation = $approv->approval_annotation;
+            $app->approval_status = $status->code_description;
+            $approvales->push($app);
+        }
+        
+
         $res = new Research();
         $research = $res->getResearchById($pustaha->research_id);
-        $full_name = $this->simsdm->getEmployee($research->author)->full_name;
+        $full_name = $simsdm->searchEmployee($research->author,1)->data[0]->full_name;
         $pustaha->research_full = 'Author: ' . $full_name . ', Judul Penelitian: ' . $research->title;
+        $pustaha->author = $this->simsdm->searchEmployee($research->author,1)->data[0]->nidn;
 
         return view('pustaha.pustaha-detail', compact(
             'pustaha',
@@ -253,7 +276,8 @@ class PustahaController extends MainController {
             'action_url',
             'page_title',
             'disabled',
-            'research'
+            'research',
+            'edit'
         ));
     }
 
@@ -302,8 +326,10 @@ class PustahaController extends MainController {
         
         $res = new Research();
         $research = $res->getResearchById($pustaha->research_id);
-        $full_name = $this->simsdm->getEmployee($research->author)->full_name;
+        
+        $full_name = $this->simsdm->searchEmployee($research->author,1)->data[0]->full_name;
         $pustaha->research_full = 'Author: ' . $full_name . ', Judul Penelitian: ' . $research->title;
+        $pustaha->author = $this->simsdm->searchEmployee($research->author,1)->data[0]->nidn;
 
         return view('pustaha.pustaha-detail', compact(
             'pustaha',
@@ -451,7 +477,12 @@ class PustahaController extends MainController {
 
     public function getAjax()
     {
-        $pustahas = Pustaha::where('author', Auth::user()->user_id)->get();
+        $auth = UserAuth::where('username',Auth::user()->user_id)->first();
+        if($auth->auth_type=="SU"){
+            $pustahas = Pustaha::all();
+        }else{
+            $pustahas = Pustaha::where('author', Auth::user()->user_id)->get();
+        }
 
         $data = [];
 
@@ -822,24 +853,40 @@ class PustahaController extends MainController {
         $res = new Research();
         $simsdm = new Simsdm();
         $auths = null;
-        $user_auth = UserAuth::where('username',$this->user_info['username'])->get();
-        if($user_auth->contains('auth_type','SU') || $user_auth->contains('auth_type)','OWR3' || $user_auth->contains('auth_type','OPEL') )){
+        $user_auth = UserAuth::where('username',$this->user_info['user_id'])->get();
+        if($user_auth->contains('auth_type','SU') || $user_auth->contains('auth_type','OWR3') || $user_auth->contains('auth_type','OPEL')){
             $research = $res->searchResearchTitle($input['query']);
         }else{
             $research = $res->searchResearchTitleOwn($input['query'],$this->user_info['username']);
         }
 
         $results = new Collection();
-        foreach ($research->data as $rsc)
-        {
+        
+        if(empty($research->data)){
             $result = new \stdClass();
-            $result->research_id = $rsc->id;
-            $user = $simsdm->getEmployee($rsc->author);
-            $result->label = 'Author: ' . $user->full_name . ', Judul Penelitian: ' . $rsc->title;
+            $result->research_id = 0;
+            $result->label = 'Research is not found';
             $results->push($result);
+        }else{
+            foreach ($research->data as $rsc)
+            {
+                $result = new \stdClass();
+                $result->research_id = $rsc->id;
+                $user = $simsdm->searchEmployee($rsc->author,1);
+                $user = $user->data[0];
+                $result->label = 'Author: ' . $user->full_name . ', Judul Penelitian: ' . $rsc->title;
+                $results->push($result);
+            }    
         }
+        
         $results = json_encode($results, JSON_PRETTY_PRINT);
 
         return response($results, 200)->header('Content-Type', 'application/json');
+    }
+
+    public function reportList(){
+        $page_title = 'Report Pustaha';
+
+        return view('pustaha.pustaha-report', compact('page_title'));
     }
 }

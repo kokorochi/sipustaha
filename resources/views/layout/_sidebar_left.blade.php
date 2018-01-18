@@ -3,7 +3,7 @@
     <!-- Start left navigation - profile shortcut -->
     <div id="tour-8" class="sidebar-content">
         <div class="media">
-            <a class="pull-left has-notif avatar" href="{{url('user/profile')}}">
+            <a class="pull-left has-notif avatar">
                 <img src="{{$user_info['photo']}}" alt="admin">
                 <i class="online"></i>
             </a>
@@ -38,6 +38,13 @@
         @endcan
 
         @can('admin-menu')
+            <li class="submenu {!! Request::is('pustahas/report') ? 'active' : null !!}">
+                <a href="{{url('pustahas/report')}}">
+                    <span class="icon"><i class="fa fa-line-chart"></i></span>
+                    <span class="text">Report</span>
+                    {!! Request::is('pustahas/report') ? '<span class="selected"></span>' : null !!}
+                </a>
+            </li>
             <li class="submenu {!! Request::is('users', 'users/*') ? 'active' : null !!}">
                 <a href="javascript:void(0);">
                     <span class="icon"><i class="fa fa-lock"></i></span>

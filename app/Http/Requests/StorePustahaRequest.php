@@ -84,6 +84,9 @@ class StorePustahaRequest extends FormRequest {
             $rules = array_add($rules, 'file_claim_accomodation_ori', 'required|mimetypes:application/pdf');
             $rules = array_add($rules, 'file_certification_ori', 'required|mimetypes:application/pdf');
         }
+        if($this->input('research_id')==0){
+            $rules = array_add($rules, 'research_full', 'required');   
+        }
         return $rules;
     }
 
@@ -110,6 +113,10 @@ class StorePustahaRequest extends FormRequest {
     private function checkBeforeSave()
     {
         $ret = [];
+
+        if($this->input('research_id')==0){
+            $ret[] = 'Silahkan isi judul peneltian';  
+        }
      
         if ($this->input('pustaha_type') == 'BUKU' ||
             $this->input('pustaha_type') == 'JURNAL-N' || $this->input('pustaha_type') == 'JURNAL-I' ||

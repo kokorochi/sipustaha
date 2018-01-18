@@ -21,8 +21,6 @@ class IsAuth {
         if (env('APP_ENV') == 'local')
         {
             $user = new User();
-//            $user->username = env('LOGIN_USERNAME');
-//            $user->user_id = env('LOGIN_ID');
             $user->username = env('USERNAME_LOGIN');
             $user->user_id = env('ID_LOGIN');
 

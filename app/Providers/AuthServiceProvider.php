@@ -29,7 +29,7 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('admin-menu', function ($user)
         {
             return (
-                UserAuth::where('username', $user->username)
+                UserAuth::where('username', $user->user_id)
                     ->where('auth_type', 'SU')
                     ->exists()
             );
@@ -38,7 +38,7 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('approval-menu', function ($user)
         {
             return (
-                UserAuth::where('username', $user->username)->where(function ($query) {
+                UserAuth::where('username', $user->user_id)->where(function ($query) {
                     $query->where('auth_type', 'OPEL')->orWhere('auth_type', 'OWR3')->orWhere('auth_type', 'SU');
                 })->exists()
             );

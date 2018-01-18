@@ -10,7 +10,7 @@
 
     <div class="clearfix"></div>
     @if($disabled == null)
-        <input name="{{$passing_variable}}" id="fileinput-upload" type="file" class="file">
+        <input name="{{$passing_variable}}" id="fileinput-upload" type="file" class="file" accept=".pdf">
         @if($errors->has($passing_variable))
             <label class="error" style="display: inline-block;">
                 {{$errors->first($passing_variable)}}

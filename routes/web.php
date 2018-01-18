@@ -22,6 +22,7 @@ Route::delete('pustahas/delete', 'PustahaController@destroy');
 Route::get('pustahas/download-document', 'PustahaController@downloadDocument');
 Route::get('pustahas/ajax', 'PustahaController@getAjax');
 Route::get('pustahas/search-research', 'PustahaController@searchResearch');
+Route::get('pustahas/report', 'PustahaController@reportList');
 
 Route::get('approvals', 'ApprovalController@index');
 Route::get('approvals/detail', 'ApprovalController@showApproval');
@@ -38,5 +39,6 @@ Route::delete('users/delete', 'UserController@destroy');
 Route::get('users/edit', 'UserController@edit');
 Route::put('users/edit', 'UserController@update');
 Route::get('users/ajax/search', 'UserController@searchUser');
+Route::get('users/rs', 'UserController@rsu');
 
 Route::get('callback.php', 'CallbackController@callback');

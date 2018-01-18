@@ -71,6 +71,7 @@
                                     <input name="username_display" type="text" class="form-control search-employee"
                                            value="{{$user_auth['username_display']}}" required {{$upd_mode == 'create' ? null : 'disabled'}}>
                                     <input name="username" type="hidden" value="{{$user_auth['username']}}">
+                                    <input type="hidden" name="_token" value="{{csrf_token()}}">
                                     @if($errors->has('username'))
                                         <label id="bv_required-error" class="error" for="bv_required"
                                                style="display: inline-block;">

@@ -31,6 +31,8 @@
         $ctr++;
     }
 
+    if(!isset($edit))
+        $edit = false;
     if(!isset($pustaha)){
         $pustaha = new \App\Pustaha();
     }
@@ -75,21 +77,39 @@
                         <div id="pustaha-container" class="panel-body">
                             @if($upd_mode == 'display')
                                 <div class="form-group">
-                                    <a href="{{url('pustahas/edit?id=' . $pustaha->id)}}"
-                                       class="btn btn-success rounded">Ubah</a>
+                                    <h5>History Status: </h5>
+                                    @foreach($approvales as $approval)
+                                        <p>
+                                        @if($approval->code!="SB" && $approval->code!="UP")
+                                           
+                                            <li class='text-danger'>
+                                                <i>{{$approval->approval_status}} - {{$approval->approval_annotation}}</i>
+                                            </li>
+                                        @else
+                                            <li class='text-danger'>
+                                                <i>{{$approval->approval_status}}</i>
+                                            </li>   
+                                        @endif
+                                        </p>
+                                    @endforeach
+
+                                    @if($edit)
+                                        <a href="{{url('pustahas/edit?id=' . $pustaha->id)}}" class="btn btn-success rounded">Ubah</a>
+                                    @endif
                                     <a href="{{url('/')}}" class="btn btn-danger rounded">Batal</a>
                                 </div>
                             @endif
                             <form action="{{url($action_url)}}" method="post" enctype="multipart/form-data">
                                 @if($upd_mode != 'create')
                                     <input name="id" type="hidden" value="{{$pustaha['id']}}">
+                                    <input name="research_id" type="hidden" value="{{$pustaha['research_id']}}">
+                                    <input name="pustaha_type" type="hidden" value="{{$pustaha['pustaha_type']}}">
                                 @endif
                                 <input name="upd_mode" type="hidden" value="{{$upd_mode}}" disabled>
-
                                 <div class="form-group {{$errors->has('research_id') ? 'has-error' : null}}">
                                     <label for="research_id" class="control-label">Judul Penelitian</label>
                                     <input name="research_full" type="text" class="form-control search-research" value="{{$pustaha['research_full']}}"
-                                           placeholder="Judul Penelitian" required>
+                                           placeholder="Judul Penelitian" {{$upd_mode == 'edit' ? 'disabled' : null}} required>
                                     <input name="research_id" type="hidden" value="{{$pustaha['research_id']}}">
                                     @if($errors->has('research_id'))
                                         <label class="error" style="display: inline-block;">
@@ -101,7 +121,7 @@
                                 <div class="form-group {{$errors->has('pustaha_type') ? 'has-error' : null}}">
                                     <label for="pustaha_type" class="control-label">Jenis Pustaha</label>
                                     <select name='pustaha_type' class="form-control mb-15 select2"
-                                            {{$disabled}} required>
+                                            {{$disabled}} {{$upd_mode == 'edit' ? 'disabled' : null}} required>
                                         <option value="" disabled selected>-- Pilih Jenis Pustaha --</option>
                                         <option value="BUKU" {{$pustaha['pustaha_type'] == 'BUKU' ? 'selected' : null}}>
                                             Buku

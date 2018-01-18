@@ -144,16 +144,20 @@ $(document).ready(function () {
                     orderable: false,
                     defaultContent: '<a class="btn btn-theme btn-sm rounded edit" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fa fa-pencil" style="color:white;"></i></a>' +
                     '<a data-toggle="tooltip" data-placement="top" data-original-title="Delete"><button class="btn btn-danger btn-sm rounded delete" data-toggle="modal" data-target="#delete"><i class="fa fa-times"></i></button></a>',
-                    targets: 4
+                    targets: 5
                 },
                 {
                     className: "dt-center",
-                    targets: [0, 3, 4]
+                    targets: [0, 1, 3, 4, 5]
                 },
                 {
                     width: "5%",
-                    targets: 0,
+                    targets: 1,
                 },
+                {
+                    visible: false,
+                    targets: 0,
+                }
             ],
         });
 
@@ -167,9 +171,9 @@ $(document).ready(function () {
                 var target_row = $(this).closest("tr").get(0);
                 var position = userDatatable.fnGetPosition(target_row);
             }
-            var username = userDatatable.fnGetData(position)[1];
+            var id = userDatatable.fnGetData(position)[0];
 
-            $("#delete form").attr("action", baseUrl + "users/delete?username=" + username);
+            $("#delete form").attr("action", baseUrl + "users/delete?id=" + id);
         });
 
         $(document).on("click", "#user-list a.edit", function (e) {
@@ -182,9 +186,9 @@ $(document).ready(function () {
                 var target_row = $(this).closest("tr").get(0);
                 var position = userDatatable.fnGetPosition(target_row);
             }
-            var username = userDatatable.fnGetData(position)[1];
+            var id = userDatatable.fnGetData(position)[0];
 
-            window.open(baseUrl + "users/edit?id=" + username, "_self");
+            window.open(baseUrl + "users/edit?id=" + id, "_self");
         });
     }
 
@@ -381,7 +385,7 @@ $(document).ready(function () {
                     var transformed = $.map(data, function (el) {
                         return {
                             label: el.label,
-                            id: el.username,
+                            id: el.user_id,
                             full_name: el.full_name
                         };
                     });
@@ -407,7 +411,6 @@ $(document).ready(function () {
                 },
                 success: function (data) {
                     var transformed = $.map(data, function (el) {
-
                         return {
                             label: el.label,
                             id: el.research_id
@@ -418,7 +421,6 @@ $(document).ready(function () {
             });
         },
         select: function (event, ui) {
-            console.log(ui);
             $(this).parents("div").find("input[name=research_id]").val(ui.item.id);
             $('.search-research').trigger('change');
         }
@@ -517,7 +519,8 @@ $(document).ready(function () {
 
     if ($(".date-picker").length) {
         $(".date-picker").datepicker({
-            format: 'dd-mm-yyyy'
+            format: 'dd-mm-yyyy',
+            autoclose: true
         });
     }
 

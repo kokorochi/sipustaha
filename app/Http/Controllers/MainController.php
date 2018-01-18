@@ -151,6 +151,7 @@ class MainController extends Controller
             $user = $simsdm->getEmployee(Auth::user()->user_id);
             $this->user_info = [
                 'username' => Auth::user()->username,
+                'user_id' => $user->id,
                 'full_name' => $user->full_name,
                 'photo' => $user->photo,
 //                'email'     => $user->email,

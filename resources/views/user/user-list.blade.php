@@ -68,6 +68,7 @@
                             <table id="user-list" class="table table-striped table-theme table-hover">
                                 <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>#</th>
                                     <th>Username</th>
                                     <th>Nama Lengkap</th>

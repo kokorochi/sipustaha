@@ -64,7 +64,7 @@ class StoreUserRequest extends FormRequest {
 
         if (! empty($this->input('unit')))
         {
-            $user_auths = UserAuth::where('username', Auth::user()->username)->get();
+            $user_auths = UserAuth::where('username', Auth::user()->user_id)->get();
 
             // Is Super User, no need to check
             $found = $user_auths->filter(function ($v, $k)

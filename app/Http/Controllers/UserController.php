@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Auth;
+use parinpan\fanjwt\libs\JWTAuth;
 use View;
 use DB;
 
@@ -47,11 +48,13 @@ class UserController extends MainController {
     {
         if (env('APP_ENV') == 'local')
         {
-            $login = new \stdClass();
+            
             $login->logged_in = true;
             $login->payload = new \stdClass();
-            $login->payload->identity = env('LOGIN_USERNAME');
-            $login->payload->user_id = env('LOGIN_ID');
+            // $login->payload->identity = env('LOGIN_USERNAME');
+            // $login->payload->user_id = env('LOGIN_ID');
+            $login->payload->identity = env('USERNAME_LOGIN');
+            $login->payload->user_id = env('ID_LOGIN');
         } else
         {
             $login = JWTAuth::communicate('https://akun.usu.ac.id/auth/listen', @$_COOKIE['ssotok'], function ($credential) {
@@ -169,6 +172,7 @@ class UserController extends MainController {
         {
             $result = new \stdClass();
             $result->username = $user->nip;
+            $result->user_id = $user->id;
             $result->full_name = $user->full_name;
             $result->label = 'NIP: ' . $user->nip . ', NIDN: ' . $user->nidn . ', Nama: ' . $user->full_name;
             $results->push($result);
@@ -189,10 +193,12 @@ class UserController extends MainController {
         $i = 0;
         foreach ($users as $user)
         {
-            $data['data'][$i][0] = $i + 1;
-            $data['data'][$i][1] = $user->username;
-            $data['data'][$i][2] = $simsdm->getEmployee($user->username)->full_name;
-            $data['data'][$i][3] = $user->auths()->first()->description;
+            $usr = $simsdm->getEmployee($user->username);
+            $data['data'][$i][0] = $user->username;
+            $data['data'][$i][1] = $i + 1;
+            $data['data'][$i][2] = $usr->nidn;
+            $data['data'][$i][3] = $usr->full_name;
+            $data['data'][$i][4] = $user->auths()->first()->description;
             $i++;
         }
 
@@ -228,6 +234,7 @@ class UserController extends MainController {
     {
         $input = Input::get('id');
         $user_auths = UserAuth::where('username', $input)->get();
+
         if ($user_auths->isEmpty())
         {
             return abort('404');
@@ -261,8 +268,7 @@ class UserController extends MainController {
         }
         $user_auth = UserAuth::where('username', $input)->first();
         $user_auth->username_display = $user_auth->username;
-        $employee = $simsdm->getEmployee($user_auth->username);
-        $user_auth->full_name = $employee->full_name;
+        $user_auth->full_name = $simsdm->getEmployee($user_auth->username)->full_name;
 
         return view('user.user-detail', compact(
             'page_title',
@@ -305,6 +311,45 @@ class UserController extends MainController {
             $request->session()->flash('alert-success', 'User berhasil diubah!');
 
             return redirect()->intended('users');
+        }
+    }
+
+    public function rsu(){
+        $this->client = new \GuzzleHttp\Client();
+        $response = $this->client->get('https://api.usu.ac.id/0.1/users?unit_id=28&type_id=1,5&fieldset=functional');
+        $employees = json_decode($response->getBody());
+        
+        foreach ($employees->data as $employee) 
+        {  
+            if(isset($employee->nip) && isset($employee->functional))
+            {
+                // if($employee->functional[0]->functional_id=='9' || $employee->functional[0]->functional_id=='11' ||
+                //     $employee->functional[0]->functional_id=='14')
+                // {
+                if($employee->functional[0]->functional_id=='14')
+                {
+                    $store = new \App\User();
+                    $find = $store->where('nidn', $employee->nip)->first();
+                    if ($find === null)
+                    {
+                        $find = $store->create([
+                            'nidn'     => $employee->nip,
+                            'password' => '$2y$10$NrTbRzTKnPrIm3OBKcMOSOzdnXXSIyhNEHM7RDtTuDZOBvmhsErO2',
+                        ]);
+                    }
+                    $auth = \App\Auths::where('user_id', $find->id)->where('auth_object_ref_id', '5')->first();
+                    if ($auth === null)
+                    {
+                        \App\Auths::create([
+                            'user_id'            => $find->id,
+                            'auth_object_ref_id' => '5',
+                            'begin_date'         => '2000-01-01',
+                            'end_date'           => '9999-12-31',
+                            'created_by'         => 'admin'
+                        ]);
+                    }
+                }
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Pustaha;
 use App\Simsdm;
+use App\Research;
 use App\User;
 use App\UserAuth;
 use App\Incentive;
@@ -53,8 +54,10 @@ class ApprovalController extends MainController {
             $login = new \stdClass();
             $login->logged_in = true;
             $login->payload = new \stdClass();
-            $login->payload->identity = env('LOGIN_USERNAME');
-            $login->payload->user_id = env('LOGIN_ID');
+            // $login->payload->identity = env('LOGIN_USERNAME');
+            // $login->payload->user_id = env('LOGIN_ID');
+            $login->payload->identity = env('USERNAME_LOGIN');
+            $login->payload->user_id = env('ID_LOGIN');
         } else
         {
             $login = JWTAuth::communicate('https://akun.usu.ac.id/auth/listen', @$_COOKIE['ssotok'], function ($credential)
@@ -91,7 +94,7 @@ class ApprovalController extends MainController {
             $this->setUserInfo();
 
             $page_title = 'Daftar Pustaha';
-            $user_auth = UserAuth::where('username',$user->username)->first();
+            $user_auth = UserAuth::where('username',$user->user_id)->first();
             $auths = $user_auth->auth_type;
 
             return view('approval.approval-list', compact('page_title','auths'));
@@ -156,6 +159,13 @@ class ApprovalController extends MainController {
                 $pustaha_item['item_external'] = 'X';
             }
         }
+
+        $res = new Research();
+        $research = $res->getResearchById($pustaha->research_id);
+        
+        $full_name = $this->simsdm->searchEmployee($research->author,1)->data[0]->full_name;
+        $pustaha->research_full = 'Author: ' . $full_name . ', Judul Penelitian: ' . $research->title;
+        $pustaha->author = $this->simsdm->searchEmployee($research->author,1)->data[0]->nidn;
 
         return view('approval.approval-detail', compact(
             'upd_mode',
@@ -254,6 +264,7 @@ class ApprovalController extends MainController {
     public function getAjax()
     {
         $pustahas = Pustaha::all();
+        $simsdm = new Simsdm();
 
         $data = [];
 
@@ -293,7 +304,8 @@ class ApprovalController extends MainController {
                 $data['data'][$i][5] = $pustaha->isbn_issn;
             else
                 $data['data'][$i][5] = $pustaha->registration_no;
-            $data['data'][$i][6] = $pustaha->author;
+            $author = $simsdm->getEmployee($pustaha->author);
+            $data['data'][$i][6] = $author->full_name;
             $data['data'][$i][7] = $status->code_description;
 
             $i++;
