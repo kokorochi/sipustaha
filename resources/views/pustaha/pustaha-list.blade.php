@@ -76,6 +76,7 @@
                                         <th>Tanggal</th>
                                         <th>ISBN/ISSN</th>
                                         <th>Status</th>
+                                        <th>Permohonan</th>
                                         <th>Aksi</th>
                                     </tr>
                                     </thead>

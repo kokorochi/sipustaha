@@ -38,6 +38,16 @@
                             <form id='form_report'  method="post" enctype="multipart/form-data">
                                 {{csrf_field()}}
                                 <div class="form-group {{$errors->has('pustaha_type') ? 'has-error' : null}}">
+                                    <div class="col-sm-2">
+                                        <select name="input[level]" data-placeholder="Pilih Level"
+                                                class="chosen-select-level mb-15" tabindex="2">
+                                            <option value="1">Universitas Sumatera Utara</option>
+                                            <option value="2">Fakultas</option>
+                                            <option value="3">Program Studi</option>
+                                            <option value="4">Dosen</option>
+                                        </select>
+                                    </div> <!-- /.col-sm-2 -->
+
                                     <label for="pustaha_type" class="control-label">Jenis Pustaha</label>
                                     <select name='pustaha_type' class="form-control mb-15 select2"
                                             required>

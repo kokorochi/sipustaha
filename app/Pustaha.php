@@ -63,4 +63,9 @@ class Pustaha extends Model {
         return $this->hasMany(Approval::class);
     }
 
+    public function diseminasi()
+    {
+        return $this->hasMany(Diseminasi::class);
+    }
+
 }

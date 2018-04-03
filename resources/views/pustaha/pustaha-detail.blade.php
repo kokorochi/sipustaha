@@ -79,18 +79,17 @@
                                 <div class="form-group">
                                     <h5>History Status: </h5>
                                     @foreach($approvales as $approval)
-                                        <p>
-                                        @if($approval->code!="SB" && $approval->code!="UP")
-                                           
-                                            <li class='text-danger'>
-                                                <i>{{$approval->approval_status}} - {{$approval->approval_annotation}}</i>
-                                            </li>
-                                        @else
-                                            <li class='text-danger'>
-                                                <i>{{$approval->approval_status}}</i>
-                                            </li>   
-                                        @endif
-                                        </p>
+                                        <div class="col-md-12">
+                                            @if($approval->code!="SB" && $approval->code!="UP")
+                                                <li class='text-danger'>
+                                                    <i>{{$approval->approval_status}} - {{$approval->approval_annotation}}</i>
+                                                </li>
+                                            @else
+                                                <li class='text-danger'>
+                                                    <i>{{$approval->approval_status}}</i>
+                                                </li>   
+                                            @endif
+                                        </div>
                                     @endforeach
 
                                     @if($edit)
@@ -100,17 +99,37 @@
                                 </div>
                             @endif
                             <form action="{{url($action_url)}}" method="post" enctype="multipart/form-data">
+                                {{csrf_field()}}
                                 @if($upd_mode != 'create')
                                     <input name="id" type="hidden" value="{{$pustaha['id']}}">
                                     <input name="research_id" type="hidden" value="{{$pustaha['research_id']}}">
                                     <input name="pustaha_type" type="hidden" value="{{$pustaha['pustaha_type']}}">
                                 @endif
                                 <input name="upd_mode" type="hidden" value="{{$upd_mode}}" disabled>
-                                <div class="form-group {{$errors->has('research_id') ? 'has-error' : null}}">
+                                <div class="form-group is_simpel">
+                                    Publikasi terkait dengan data di Sistem Penelitian (SIMPEL) ? 
+                                    <input type="checkbox" class="switch" name="is_simpel" 
+                                    @if($upd_mode == 'create') @php $pustaha['is_simpel']= 1; @endphp @endif
+                                 {{$pustaha['is_simpel'] == '1' ? 'checked' : 'null'}} data-on-text="YA" data-off-text="TIDAK" data-on-color="teal" id="is_simpel">
+                                </div>
+                                <div id="research" {{$pustaha['is_simpel'] == '1' ? "null" : "style=display:none"}} class="form-group {{$errors->has('research_id') ? 'has-error' : null}}">
                                     <label for="research_id" class="control-label">Judul Penelitian</label>
-                                    <input name="research_full" type="text" class="form-control search-research" value="{{$pustaha['research_full']}}"
-                                           placeholder="Judul Penelitian" {{$upd_mode == 'edit' ? 'disabled' : null}} required>
-                                    <input name="research_id" type="hidden" value="{{$pustaha['research_id']}}">
+                                    @if($auth == 'SU')
+                                        <input name="research_full" type="text" class="form-control search-research" value="{{$pustaha['research_full']}}"
+                                           placeholder="Judul Penelitian" {{$upd_mode == 'edit' ? 'disabled' : null}}>
+                                        <input name="research_id" type="hidden" value="{{$pustaha['research_id']}}">
+                                    @else
+                                        <select name='research_id' class="form-control mb-15 select2"
+                                            {{$disabled}} {{$upd_mode == 'edit' ? 'disabled' : null}}>
+                                            <option value="" disabled selected>-- Pilih Judul Penelitian --</option>
+                                            @if(!empty($researches))
+                                                @foreach($researches as $research)
+                                                    <option value="{{$research->id}}" {{$research->id == $pustaha['research_id'] ? 'selected' : null}}>Author : {{$research->author}}, Judul : {{$research->title}}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    @endif
+                                    
                                     @if($errors->has('research_id'))
                                         <label class="error" style="display: inline-block;">
                                             {{$errors->first('research_id')}}
@@ -132,8 +151,10 @@
                                         <option value="JURNAL-I" {{$pustaha['pustaha_type'] == 'JURNAL-I' ? 'selected' : null}}>
                                             Jurnal Internasional
                                         </option>
-                                        <option value="PROSIDING" {{$pustaha['pustaha_type'] == 'PROSIDING' ? 'selected' : null}}>
-                                            Prosiding
+                                        <option value="PROSIDING-N" {{$pustaha['pustaha_type'] == 'PROSIDING-N' ? 'selected' : null}}>
+                                            Prosiding Nasional</option>
+                                        <option value="PROSIDING-I" {{$pustaha['pustaha_type'] == 'PROSIDING-I' ? 'selected' : null}}>
+                                            Prosiding Internasional
                                         </option>
                                         <option value="HKI" {{$pustaha['pustaha_type'] == 'HKI' ? 'selected' : null}}>
                                             HKI

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Requests;
+use App\Pustaha;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -46,7 +47,7 @@ class StorePustahaRequest extends FormRequest {
                 'isbn_issn'                   => 'required|max:191',
                 'url_address'                 => 'required|max:191',
             ];
-        } elseif ($this->input('pustaha_type') == 'PROSIDING')
+        } elseif ($this->input('pustaha_type') == 'PROSIDING-N' || $this->input('pustaha_type') == 'PROSIDING-I')
         {
             $rules = [
                 'publisher'                   => 'required|max:191',
@@ -78,14 +79,18 @@ class StorePustahaRequest extends FormRequest {
                 'registration_no'             => 'required|max:191',
             ];
         }
+
         if(!$this->input('_method')){
             $rules = array_add($rules, 'file_name_ori', 'required|mimetypes:application/pdf');
-            $rules = array_add($rules, 'file_claim_request_ori', 'required|mimetypes:application/pdf');
-            $rules = array_add($rules, 'file_claim_accomodation_ori', 'required|mimetypes:application/pdf');
-            $rules = array_add($rules, 'file_certification_ori', 'required|mimetypes:application/pdf');
+            // $rules = array_add($rules, 'file_claim_request_ori', 'required|mimetypes:application/pdf');
+            // $rules = array_add($rules, 'file_claim_accomodation_ori', 'required|mimetypes:application/pdf');
+            // $rules = array_add($rules, 'file_certification_ori', 'required|mimetypes:application/pdf');
         }
-        if($this->input('research_id')==0){
-            $rules = array_add($rules, 'research_full', 'required');   
+
+        if(!empty($this->input('is_simpel'))) {
+            if($this->input('research_id')==0){
+                $rules = array_add($rules, 'research_full', 'required');   
+            }
         }
         return $rules;
     }
@@ -114,13 +119,22 @@ class StorePustahaRequest extends FormRequest {
     {
         $ret = [];
 
-        if($this->input('research_id')==0){
-            $ret[] = 'Silahkan isi judul peneltian';  
+        if(!empty($this->input('is_simpel'))){
+            if($this->input('research_id')==0){
+                $ret[] = 'Silahkan isi judul peneletian';  
+            }
+            
+            if($this->input('_method') != "PUT"){
+                $check = Pustaha::where('research_id', $this->input('research_id'))->count();
+                if($check > 0){
+                    $ret[] = 'Judul Penelitian Telah Terdaftar Sebelumnya';
+                }
+            }
         }
      
         if ($this->input('pustaha_type') == 'BUKU' ||
             $this->input('pustaha_type') == 'JURNAL-N' || $this->input('pustaha_type') == 'JURNAL-I' ||
-            $this->input('pustaha_type') == 'PROSIDING'
+            $this->input('pustaha_type') == 'PROSIDING-N' || $this->input('pustaha_type') == 'PROSIDING-I' 
         )
         {
             foreach ($this->input('item_username_display') as $key => $item)
@@ -143,6 +157,7 @@ class StorePustahaRequest extends FormRequest {
                 }
             }
         }
+
 
         return $ret;
     }

@@ -13,13 +13,17 @@ $(document).ready(function () {
             columnDefs: [
                 {
                     orderable: false,
-                    defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Lihat Pertanyaan"><button class="btn btn-primary btn-sm rounded display"><i class="fa fa-eye" style="color:white;"></i></button></a>' +
-                    '<a data-toggle="tooltip" data-placement="top" data-original-title="Delete"><button class="btn btn-danger btn-sm rounded delete" data-toggle="modal" data-target="#delete"><i class="fa fa-times"></i></button></a>',
                     targets: 7
                 },
                 {
+                    orderable: false,
+                    defaultContent: '<a data-toggle="tooltip" data-placement="top" title="Lihat"><button class="btn btn-primary btn-sm rounded display"><i class="fa fa-eye" style="color:white;"></i></button></a>' +
+                    '<a data-toggle="tooltip" data-placement="top" data-original-title="Delete"><button class="btn btn-danger btn-sm rounded delete" data-toggle="modal" data-target="#delete"><i class="fa fa-times"></i></button></a>',
+                    targets: 8
+                },
+                {
                     className: "dt-center",
-                    targets: [1, 4, 5, 6, 7]
+                    targets: [1, 4, 5, 6, 7, 8]
                 },
                 {
                     width: "5%",
@@ -63,6 +67,36 @@ $(document).ready(function () {
 
             window.open(baseUrl + "pustahas/display?id=" + id, "_self");
         });
+
+        $(document).on("click", "#pustaha-list a button.diseminasi", function (e) {
+            e.preventDefault();
+            var dt_row = $(this).closest("li").data("dt-row");
+
+            if (dt_row >= 0) {
+                var position = dt_row;
+            } else {
+                var target_row = $(this).closest("tr").get(0);
+                var position = pustahaDatatable.fnGetPosition(target_row);
+            }
+            var id = pustahaDatatable.fnGetData(position)[0];
+
+            window.open(baseUrl + "pustahas/diseminasi?id=" + id, "_self");
+        });     
+
+        $(document).on("click", "#pustaha-list a button.insentif", function (e) {
+            e.preventDefault();
+            var dt_row = $(this).closest("li").data("dt-row");
+
+            if (dt_row >= 0) {
+                var position = dt_row;
+            } else {
+                var target_row = $(this).closest("tr").get(0);
+                var position = pustahaDatatable.fnGetPosition(target_row);
+            }
+            var id = pustahaDatatable.fnGetData(position)[0];
+
+            window.open(baseUrl + "pustahas/insentif?id=" + id, "_self");
+        });        
     }
 
     if ($("#approval-pustaha-list").length) {
@@ -200,7 +234,7 @@ $(document).ready(function () {
     else if ($("select[name=pustaha_type]").val() == "JURNAL-N" || $("select[name=pustaha_type]").val() == "JURNAL-I") {
         toggleCoopDetail(false, true, false, false, false);
     }
-    else if ($("select[name=pustaha_type]").val() == "PROSIDING") {
+    else if ($("select[name=pustaha_type]").val() == "PROSIDING-N" || $("select[name=pustaha_type]").val() == "PROSIDING-I") {
         toggleCoopDetail(false, false, true, false, false);
     }
     else if ($("select[name=pustaha_type]").val() == "HKI") {
@@ -236,7 +270,7 @@ $(document).ready(function () {
             toggleCoopDetail(true, false, false, false, false);
         } else if ($('select[name=pustaha_type]').val() == 'JURNAL-N' || $('select[name=pustaha_type]').val() == 'JURNAL-I') {
             toggleCoopDetail(false, true, false, false, false);
-        } else if ($('select[name=pustaha_type]').val() == 'PROSIDING') {
+        } else if ($('select[name=pustaha_type]').val() == 'PROSIDING-N' || $("select[name=pustaha_type]").val() == "PROSIDING-I") {
             toggleCoopDetail(false, false, true, false, false);
         } else if ($('select[name=pustaha_type]').val() == 'HKI') {
             toggleCoopDetail(false, false, false, true, false);
@@ -294,6 +328,10 @@ $(document).ready(function () {
         }, 700);
     });
 
+    if($('.switch').length){
+        $('.switch').bootstrapSwitch();
+    }
+
     var i = 0;
     while (i < 5) {
         var element = $("#datepicker");
@@ -309,68 +347,6 @@ $(document).ready(function () {
         i++;
     }
 
-    if ($("#MoA select[name=cooperation_id]").val() > 0) {
-        var id = $("#MoA select[name=cooperation_id]").val();
-        if (id > 0) {
-            getCoopDetail(id)
-        }
-    }
-
-    $("#MoA select[name=cooperation_id]").change(function () {
-        var id = $("#MoA select[name=cooperation_id]").val();
-        if (id > 0) {
-            getCoopDetail(id)
-        }
-    });
-
-    function getCoopDetail(id) {
-        $.ajax({
-            url: baseUrl + 'cooperations/ajax/cooperation-detail',
-            dataType: "json",
-            data: {
-                id: id
-            },
-            success: function (data) {
-                $("input[name=mou_detail_partner_id]").val(data['partner_name']);
-                $("input[name=mou_detail_area_of_coop]").val(data['area_of_coop']);
-                $("input[name=mou_detail_sign_date]").val(data['sign_date']);
-                $("input[name=mou_detail_end_date]").val(data['end_date']);
-                $("input[name=mou_detail_usu_doc_no]").val(data['usu_doc_no']);
-                $("input[name=mou_detail_partner_doc_no]").val(data['partner_doc_no']);
-            }
-        });
-    }
-
-    if ($("#tambah_kerma").length) {
-        $("#tambah_kerma").validate({
-            rules: {
-                "item_name[]": {
-                    required: true
-                },
-                "item_quantity[]": {
-                    required: true
-                },
-                "item_uom[]": {
-                    required: true
-                },
-                "item_total_amount[]": {
-                    required: true
-                },
-                "item_annotation[]": {
-                    required: true
-                },
-            },
-            highlight: function (element) {
-                $(element).parents('.form-group').addClass('has-error has-feedback');
-            },
-            unhighlight: function (element) {
-                $(element).parents('.form-group').removeClass('has-error');
-            },
-            submitHandler: function (form) {
-                form.submit();
-            }
-        });
-    }
 
     var autocomp_opt = {
         source: function (request, response) {
@@ -520,7 +496,7 @@ $(document).ready(function () {
     if ($(".date-picker").length) {
         $(".date-picker").datepicker({
             format: 'dd-mm-yyyy',
-            autoclose: true
+            autoclose: true,
         });
     }
 
@@ -537,7 +513,7 @@ $(document).ready(function () {
             $('#hki-container').hide().find('input, textarea, select').attr('disabled', true);
             $('#patent-container').hide().find('input, textarea, select').attr('disabled', true);
         }
-        else if ($("select[name=pustaha_type]").val() == "PROSIDING") {
+        else if ($("select[name=pustaha_type]").val() == "PROSIDING-N" || $("select[name=pustaha_type]").val() == "PROSIDING-I") {
             $('#book-container').hide().find('input, textarea, select').attr('disabled', true);
             $('#journal-container').hide().find('input, textarea, select').attr('disabled', true);
             $('#hki-container').hide().find('input, textarea, select').attr('disabled', true);
@@ -559,6 +535,16 @@ $(document).ready(function () {
             $.each($("input[name^=item_]:visible:disabled"), function(index, value){
                 $(value).attr('disabled', false);
             });
+        }
+    });
+
+    $(document).on('click','.is_simpel',function(e){
+        var val = $('#is_simpel:checked').val() ;
+        if(val=="on"){
+            $('#research').fadeIn('slow');
+        }else{
+            $("select[name=research_id]").val("");
+            $('#research').fadeOut('slow');
         }
     });
 });

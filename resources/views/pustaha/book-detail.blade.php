@@ -15,8 +15,8 @@
     @include('layout.input-text', ['passing_variable' => 'issue', 'passing_description' => 'Edisi'])
     @include('layout.input-text', ['passing_variable' => 'isbn_issn', 'passing_description' => 'ISBN'])
     @include('layout.input-upload', ['passing_variable' => 'file_name_ori', 'passing_description' => 'File (Cover, Daftar Isi)', 'passing_type' => '1'])
-    @include('layout.input-upload', ['passing_variable' => 'file_claim_request_ori', 'passing_description' => 'File (Surat Permohonan)', 'passing_type' => '2'])
+    {{-- @include('layout.input-upload', ['passing_variable' => 'file_claim_request_ori', 'passing_description' => 'File (Surat Permohonan)', 'passing_type' => '2'])
     @include('layout.input-upload', ['passing_variable' => 'file_claim_accomodation_ori', 'passing_description' => 'File (Bukti Penyebarluasan IPTEK)', 'passing_type' => '3'])
-    @include('layout.input-upload', ['passing_variable' => 'file_certification_ori', 'passing_description' => 'File (1 halaman Cover Depan)', 'passing_type' => '4'])
+    @include('layout.input-upload', ['passing_variable' => 'file_certification_ori', 'passing_description' => 'File (1 halaman Cover Depan)', 'passing_type' => '4']) --}}
 
 </div>

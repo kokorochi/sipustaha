@@ -38,13 +38,13 @@
         @endcan
 
         @can('admin-menu')
-            <li class="submenu {!! Request::is('pustahas/report') ? 'active' : null !!}">
+            {{-- <li class="submenu {!! Request::is('pustahas/report') ? 'active' : null !!}">
                 <a href="{{url('pustahas/report')}}">
                     <span class="icon"><i class="fa fa-line-chart"></i></span>
                     <span class="text">Report</span>
                     {!! Request::is('pustahas/report') ? '<span class="selected"></span>' : null !!}
                 </a>
-            </li>
+            </li> --}}
             <li class="submenu {!! Request::is('users', 'users/*') ? 'active' : null !!}">
                 <a href="javascript:void(0);">
                     <span class="icon"><i class="fa fa-lock"></i></span>

@@ -16,6 +16,8 @@
                 {{$errors->first($passing_variable)}}
             </label>
         @endif
+    @elseif(isset($diseminasi))
+        <a href="{{url('diseminasi/download-document?id=' . $diseminasi['id'] . '&type=' . $passing_type)}}" class="btn btn-theme rounded">Unduh</a>
     @else
         <a href="{{url('pustahas/download-document?id=' . $pustaha['id'] . '&type=' . $passing_type)}}" class="btn btn-theme rounded">Unduh</a>
     @endif

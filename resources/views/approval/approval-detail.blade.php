@@ -6,6 +6,9 @@
     if(!isset($pustaha)){
         $approval = new \App\Approval();
     }
+    if(!isset($approval)){
+        $approval = new \App\Approval();
+    }
 
     foreach ($olds as $key => $old){
         if($key !== '_token'){
@@ -63,6 +66,7 @@
                                     </label>
                                 @endif
                             </div>
+                            
                             <div class="form-group {{$errors->has('pustaha_type') ? 'has-error' : null}}">
                                 <label for="pustaha_type" class="control-label">Jenis Pustaha</label>
                                 <select name='pustaha_type' class="form-control mb-15 select2"
@@ -77,8 +81,10 @@
                                     <option value="JURNAL-I" {{$pustaha['pustaha_type'] == 'JURNAL-I' ? 'selected' : null}}>
                                         Jurnal Internasional
                                     </option>
-                                    <option value="PROSIDING" {{$pustaha['pustaha_type'] == 'PROSIDING' ? 'selected' : null}}>
-                                        Prosiding
+                                    <option value="PROSIDING-N" {{$pustaha['pustaha_type'] == 'PROSIDING-N' ? 'selected' : null}}>
+                                        Prosiding Nasional</option>
+                                    <option value="PROSIDING-I" {{$pustaha['pustaha_type'] == 'PROSIDING-I' ? 'selected' : null}}>
+                                        Prosiding Internasional
                                     </option>
                                     <option value="HKI" {{$pustaha['pustaha_type'] == 'HKI' ? 'selected' : null}}>
                                         HKI
@@ -105,6 +111,11 @@
                             @include('pustaha.patent-detail')
                         </div><!-- /.panel -->
                     </div>
+
+                    @if($type == 'lp')
+                        @include('pustaha.diseminasi-detail')
+                    @endif
+
                     <div class="panel rounded shadow">
                         <div class="panel-heading">
                             <div class="pull-left">
@@ -124,71 +135,13 @@
                                 {{csrf_field()}}
                                 <input name="type" type="hidden" value="{{$type}}">
                                 <input name="pustaha_id" type="hidden" value="{{$pustaha['id']}}">
-                                <div class="form-group {{$errors->has('incentive_id') ? 'has-error' : null}}">
-                                    <label for="incentive_id" class="control-label">Pilih Incentive</label>
-                                    <select name="incentive_id" class="form-control select2" style="width: 100%;" {{$disabled_approv}} required>
-                                        <option value="" disabled selected>-- Pilih Incentive --</option>
-                                        @foreach($incentive_ids as $incentive_id)
-                                            <option value="{{$incentive_id['id']}}">
-                                                    {{$incentive_id['description']}}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @if($errors->has('incentive_id'))
-                                        <label class="error" style="display: inline-block;">
-                                            {{$errors->first('incentive_id')}}
-                                        </label>
-                                    @endif
-                                </div>
-
-                                <div class="form-group {{$errors->has('annotation') ? 'has-error' : null}}" >
-                                    <label for="annotation" class="control-label">Approve Annotation</label>
-                                    <textarea name="annotation" class="form-control"
-                                              placeholder="Approve Annotation" {{$disabled_approv}} required></textarea>
-                                    @if($errors->has('annotation'))
-                                        <label class="error" style="display: inline-block;">
-                                            {{$errors->first('annotation')}}
-                                        </label>
-                                    @endif
-                                </div>
-                                <div class="form-group {{$errors->has('approve_status') ? 'has-error' : null}}">
-                                    <label for="name-survey" class="control-label">Approve Status </label>
-                                        <div>
-                                            <div class='rdio radio-inline rdio-theme rounded'>
-                                                @if($type == 'wr3')
-                                                    <input type='radio' class='radio-inline' id='approve_status1' {{$disabled_approv}} required  value='AC:WR3' name="approve_status">
-                                                    @elseif($type == 'lp')
-                                                    <input type='radio' class='radio-inline' id='approve_status1' {{$disabled_approv}} required  value='AC:LP' name="approve_status">
-                                                @endif
-                                                <label class='control-label' for='approve_status1'>Accepted</label>
-                                            </div>
-                                            <div class='rdio radio-inline rdio-theme rounded'>
-                                                @if($type == 'wr3')
-                                                    <input type='radio' class='radio-inline' id='approve_status2' {{$disabled_approv}} required  value='RJ:WR3' name="approve_status">
-                                                @elseif($type == 'lp')
-                                                    <input type='radio' class='radio-inline' id='approve_status2' {{$disabled_approv}} required  value='RJ:LP' name="approve_status">
-                                                @endif
-                                                <label class='control-label' for='approve_status2'>Rejected</label>
-                                            </div>
-                                        </div>
-                                        @if($errors->has('approve_status'))
-                                            <label class="error" style="display: inline-block;">
-                                                {{$errors->first('approve_status')}}
-                                            </label>
-                                        @endif
-                                </div>
                                 
-                                <div class="panel-footer">
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <button id="approval-submit" class="btn btn-success rounded" type="submit">Submit
-                                                </button>
-                                                <a href="{{url('/approvals')}}" class="btn btn-danger rounded">Batal</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                @if($type == 'lp')
+                                    @include('approval.approval-dissemination')
+                                @else
+                                    @include('approval.approval-incentive')
+                                @endif
+
                             </form>
                         </div>
                     </div><!-- /.body-content -->

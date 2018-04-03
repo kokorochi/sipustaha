@@ -149,6 +149,11 @@ class MainController extends Controller
             $simsdm = new Simsdm();
 
             $user = $simsdm->getEmployee(Auth::user()->user_id);
+            
+            if(empty($user)){
+                return abort('403');
+            }
+
             $this->user_info = [
                 'username' => Auth::user()->username,
                 'user_id' => $user->id,

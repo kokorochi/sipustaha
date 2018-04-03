@@ -196,7 +196,7 @@ class UserController extends MainController {
             $usr = $simsdm->getEmployee($user->username);
             $data['data'][$i][0] = $user->username;
             $data['data'][$i][1] = $i + 1;
-            $data['data'][$i][2] = $usr->nidn;
+            $data['data'][$i][2] = $usr->nip;
             $data['data'][$i][3] = $usr->full_name;
             $data['data'][$i][4] = $user->auths()->first()->description;
             $i++;

@@ -9,6 +9,7 @@
         <meta name="description" content="Sistem Informasi Manajemen Publikasi Paten HKI | Universitas Sumatera Utara">
         <meta name="keywords" content="sipustaha, sistem informasi manajamen publikasi paten hki, usu, universitas sumatera utara">
         <meta name="author" content="PSI USU">
+        <meta name="csrf-token" content="{{ Session::token() }}">
         <title>SIPUSTAHA USU - {{$page_title}}</title>
         <!--/ END META SECTION -->
 

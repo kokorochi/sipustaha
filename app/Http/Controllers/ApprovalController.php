@@ -9,7 +9,9 @@ use App\User;
 use App\UserAuth;
 use App\Incentive;
 use App\Approval;
+use App\Diseminasi;
 use App\Http\Requests\StoreApprovalRequest;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Auth;
@@ -108,24 +110,24 @@ class ApprovalController extends MainController {
         $incentive_ids = Incentive::all();
         $pustaha = Pustaha::find($id);
 
-        $approval = $pustaha->approval()->where('approval_status','UP')->orderBy('item', 'desc')->first();
-
-        if(!empty($approval)){
-            $var_item = $approval->item;
-        }else{
-            $var_item = 0;
-        }
-
-        $greater_item = $pustaha->approval()->where('item','>',$var_item)->where('approval_status', 'like', '%'.$type)->orderBy('item', 'desc')->first();
-
         $disabled_approv = null;
-        if(!empty($greater_item)){
+
+        $approval = $pustaha->approval()->orderBy('item','desc')->first();
+
+        if (strpos($approval->approval_status, strtoupper($type)) !== false) {
             $disabled_approv = 'disabled';
+        }else{
+            $approval = $pustaha->approval()->where('approval_status', 'like', 'AC:%'.$type)->first();
+            if(isset($approval)){
+                $disabled_approv = 'disabled';
+            }
         }
+
         if (empty($pustaha) || $type!= "lp" && $type!= "wr3")
         {
             return abort('404');
         }
+
         array_push($this->css['pages'], 'global/plugins/bower_components/bootstrap-datepicker-vitalets/css/datepicker.css');
         array_push($this->css['pages'], 'kartik-v/bootstrap-fileinput/css/fileinput.min.css');
 
@@ -167,6 +169,10 @@ class ApprovalController extends MainController {
         $pustaha->research_full = 'Author: ' . $full_name . ', Judul Penelitian: ' . $research->title;
         $pustaha->author = $this->simsdm->searchEmployee($research->author,1)->data[0]->nidn;
 
+        $dissemination = $pustaha->diseminasi()->first();
+
+        $approval = $pustaha->approval()->where('approval_status', 'like', '%'.$type)->first();
+
         return view('approval.approval-detail', compact(
             'upd_mode',
             'page_title',
@@ -176,11 +182,46 @@ class ApprovalController extends MainController {
             'pustaha_items',
             'incentive_ids',
             'type',
-            'disabled_approv'
+            'dissemination',
+            'disabled_approv',
+            'approval'
         ));
     }
 
-   public function downloadDocument()
+    public function store(StoreApprovalRequest $request)
+    {
+        $pustaha = Pustaha::find($request->pustaha_id);
+        
+        $last_item = $pustaha->approval()->orderBy('id', 'desc')->first();
+        
+        $pustaha->approval = new Approval();        
+        $pustaha->approval->item = $last_item->item + 1;
+        $pustaha->approval->approval_status = $request->approve_status;
+        $pustaha->approval->approval_annotation = $request->annotation;
+
+        if($request->type == "wr3"){
+            $pustaha->approval->incentive_id = $request->incentive_id;    
+        }
+        
+        $pustaha->approval->created_by = Auth::user()->user_id;
+
+        DB::transaction(function () use ($pustaha, $request)
+        {
+            if($request->type == "wr3"){
+                $pustaha->approved_by_1 = Auth::user()->user_id;
+            }elseif($request->type == "lp"){
+                $pustaha->approved_by_2= Auth::user()->user_id;
+            }
+
+            $pustaha->approval()->save($pustaha->approval);
+        });
+
+        $request->session()->flash('alert-success', 'Pustaha berhasil di-approve');
+
+        return redirect()->intended('/approvals');
+    }
+
+    public function downloadDocument()
     {
         $input = Input::get();
         if (! isset($input['id']) || ! isset($input['type']))
@@ -229,69 +270,44 @@ class ApprovalController extends MainController {
 
     }
 
-    public function store(StoreApprovalRequest $request)
-    {
-        $last_item = Approval::where('pustaha_id',$request->pustaha_id)->orderBy('id', 'desc')->first();
-        $approval = new Approval();
-        $approval->pustaha_id =  $request->pustaha_id;
-        $approval->item = $last_item->item + 1;
-        $approval->approval_status = $request->approve_status;
-        $approval->approval_annotation = $request->annotation;
-        $approval->incentive_id = $request->incentive_id;
-        $approval->created_by = Auth::user()->user_id;
-
-        DB::transaction(function () use ($approval, $request)
-        {
-            $pus_apprv = Pustaha::find($request->pustaha_id);
-
-            if($request->type == "wr3"){
-                $pus_apprv->approved_by_1 = Auth::user()->user_id;
-            }elseif($request->type == "lp"){
-                $pus_apprv->approved_by_2= Auth::user()->user_id;
-            }
-            $approval_pustaha = $pus_apprv->save();
-
-            if($approval_pustaha){
-                $approval->save();
-            }
-        });
-
-        $request->session()->flash('alert-success', 'Pustaha berhasil di-approve');
-
-        return redirect()->intended('/approvals');
-    }
-
     public function getAjax()
     {
-        $pustahas = Pustaha::all();
+        $pustahas = new Collection();
+        $auth = UserAuth::where('username',$this->user_info['user_id'])->first();
+        if($auth->auth_type == 'OPEL'){
+            $diseminasis = Diseminasi::all();
+            foreach ($diseminasis as $diseminasi) {
+                $pustaha = Pustaha::find($diseminasi->pustaha_id);
+                
+                $pustaha_item = new Pustaha();
+                $pustaha_item->id = $pustaha->id;
+                $pustaha_item->pustaha_type = $pustaha->pustaha_type;
+                $pustaha_item->title = $pustaha->title;
+                $pustaha_item->pustaha_date = $pustaha->pustaha_date;
+                $pustaha_item->isbn_issn = $pustaha->isbn_issn;
+                $pustaha_item->registration_no = $pustaha->registration_no;
+                $pustaha_item->author = $pustaha->author;
+                $pustaha_item->pustaha_date = $pustaha->pustaha_date;
+                $pustaha_item->pustaha_date = $pustaha->pustaha_date;
+
+                $pustahas->push($pustaha_item);
+            }
+        }elseif($auth->auth_type == 'OWR3'){
+
+        }elseif($auth->auth_type == 'SU'){
+            $pustahas = Pustaha::all();
+        }else{
+            $pustahas = new Pustaha();
+        }
+
         $simsdm = new Simsdm();
 
         $data = [];
 
         $i = 0;
+
         foreach ($pustahas as $pustaha)
         {
-            if ($pustaha->pustaha_type == 'BUKU' ||
-                $pustaha->pustaha_type == 'JURNAL-N' || $pustaha->pustaha_type == 'JURNAL-I' ||
-                $pustaha->pustaha_type = -'PROSIDING'
-            )
-            {
-                $pustaha_items = $pustaha->pustahaItem()->get();
-                $co_authors = '';
-                foreach ($pustaha_items as $pustaha_item)
-                {
-                    if (! empty($pustaha_item->username))
-                    {
-                        $full_name = $this->simsdm->getEmployee($pustaha_item->username)->full_name;
-                        if (! empty($full_name))
-                            $co_authors = $co_authors . $full_name . '; ';
-                    } else
-                    {
-                        $co_authors = $co_authors . $pustaha_item->name . '; ';
-                    }
-                }
-            }
-
             $approval = Approval::where('pustaha_id', $pustaha->id)->orderBy('id', 'desc')->first();
             $status = $approval->statusCode()->first();
 

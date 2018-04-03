@@ -24,11 +24,16 @@ class StoreApprovalRequest extends FormRequest
      */
     public function rules()
     {
-        return [
-            'incentive_id' => 'required',
+        $rules = [
             'annotation' => 'required',
             'approve_status' => 'required',
         ];
+
+        if ($this->input('type') == 'wr3'){
+            $rules = array_add($rules, 'incentive_id', 'required');
+        }
+
+        return $rules;
     }
 
     public function after($validator)
@@ -47,15 +52,14 @@ class StoreApprovalRequest extends FormRequest
     {
         $ret = [];
 
-        $incentive = Incentive::where('id', $this->input('id_incentive'))->get();
+        if($this->input('type') == 'wr3'){
+            $incentive = Incentive::where('id', $this->input('incentive_id'))->get();
 
-        if ($incentive->isEmpty())
-        {
-            $ret[] = 'Incentive tidak terdapat pada tabel incentive';
-
-            return $ret;
+            if ($incentive->isEmpty())
+            {
+                $ret[] = 'Incentive tidak terdapat pada tabel incentive';
+            }
         }
-
         return $ret;
     }
 }
